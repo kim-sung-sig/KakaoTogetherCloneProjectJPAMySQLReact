@@ -9,34 +9,36 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "kakao_user")
+@Table(name = "my_user")
 @Data
-public class KakaoUserEntity {
+@NoArgsConstructor
+public class UserEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idx;
-    private String username;
-    private String password;
-    private String role;
-    private String type;
-    private String name;
-    private int nameNum;
-    private String email;
-    private String profileImg;
-    private LocalDateTime createDate;
-    private LocalDateTime lastLoginDate;
+    private Long idx;
 
+    private String username;
+
+    private String name;
+
+    private String email;
+
+    private String role = "ROLE_USER";
+
+    private String type;
+
+    private LocalDateTime createDate;
 
     @Builder
-    public KakaoUserEntity(String username, String password, String type, String name, int nameNum, String email){
+    public UserEntity(String username, String name, String email, String role, String type){
         this.username = username;
-        this.password = password;
-        this.type = type;
         this.name = name;
-        this.nameNum = nameNum;
         this.email = email;
-        this.role = "ROLE_USER";
+        this.role = role;
+        this.type = type;
     }
 }

@@ -10,11 +10,11 @@ import lombok.Data;
 @Entity
 @Table(name = "kakao_board_like")
 @Data
-public class KakaoBoardLikeEntity {
+public class BoardLikeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idx;
-    private int userFk;
-    private int boardFk;
+    private Long idx;
+    private Long userFk;
+    private Long boardFk;
     private String ip;
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<!-- appender(어디에 출력할 지)에서 콘솔에 출력되는 형식을 지정한다. -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%-5level][%d{yy-MM-dd(E) HH:mm:ss}] %logger{100}%n      %msg%n</pattern>
+		</encoder>
+	</appender>
+	<!-- 
+	 -->
+	<logger name="com.example.kakao" level="DEBUG"/>
+	<!-- 언제 출력할 것인지를 지정한다. -->
+	<root level="info">
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

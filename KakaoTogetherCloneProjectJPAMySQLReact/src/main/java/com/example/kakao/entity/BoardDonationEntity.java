@@ -10,16 +10,16 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "kakao_board_comment")
+@Table(name = "kakao_board_donation")
 @Data
-public class KakaoBoardCommentEntity {
+public class BoardDonationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idx;
-    private int userFk;
-    private int boardFk;
-    private String content;
-    private int likeCount;
+    private Long idx;
+    private Long userFk;
+    private Long boardFk;
+    private int donate;
+    private String donateComment;
     private String ip;
     private LocalDateTime createDate;
 }

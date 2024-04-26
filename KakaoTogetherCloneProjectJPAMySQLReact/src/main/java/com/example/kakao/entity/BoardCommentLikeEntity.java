@@ -1,7 +1,5 @@
 package com.example.kakao.entity;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,16 +8,13 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "kakao_board_donation")
+@Table(name = "kakao_board_comment_like")
 @Data
-public class KakaoBoardDonationEntity {
+public class BoardCommentLikeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idx;
-    private int userFk;
-    private int boardFk;
-    private int donate;
-    private String donateComment;
+    private Long idx;
+    private Long userFk;
+    private Long commentFk;
     private String ip;
-    private LocalDateTime createDate;
 }

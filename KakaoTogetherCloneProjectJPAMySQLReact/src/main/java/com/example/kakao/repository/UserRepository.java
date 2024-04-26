@@ -3,9 +3,9 @@ package com.example.kakao.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.example.kakao.entity.KakaoUserEntity;
+import com.example.kakao.entity.UserEntity;
 
 @Repository
-public interface KakaoUserRepository extends JpaRepository<KakaoUserEntity, Integer>{
-
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
+    UserEntity findByUsername(String username);
 }

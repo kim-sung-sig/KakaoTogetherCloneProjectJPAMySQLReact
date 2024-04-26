@@ -12,12 +12,12 @@ import lombok.Data;
 @Entity
 @Table(name = "kakao_board")
 @Data
-public class KakaoBoardEntity {
+public class BoardEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idx;
-    private int userFk;
-    private int categoryFk;
+    private Long idx;
+    private Long userFk;
+    private Long categoryFk;
     private String thumbnail;
     private String tag1;
     private String tag2;
