@@ -12,7 +12,7 @@ import lombok.Data;
 @Entity
 @Table(name = "kakao_board")
 @Data
-public class BoardEntity {
+public class DreamBoardEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idx;
