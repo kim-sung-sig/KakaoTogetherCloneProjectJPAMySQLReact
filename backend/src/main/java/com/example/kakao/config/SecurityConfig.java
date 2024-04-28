@@ -5,16 +5,20 @@ import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import com.example.kakao.jwp.JWTFilter;
-import com.example.kakao.jwp.JWTUtil;
+import com.example.kakao.jwt.JWTFilter;
+import com.example.kakao.jwt.JWTUtil;
+import com.example.kakao.jwt.LoginFilter;
 import com.example.kakao.service.CustomOAuth2UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,24 +26,40 @@ import jakarta.servlet.http.HttpServletRequest;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final JWTUtil jwtUtil;
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil) {
+        this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtUtil = jwtUtil;
+    }
     
     @Autowired
     private CustomOAuth2UserService CustomOAuth2UserService;
+    
     @Autowired
     private CustomSuccessHandler customSuccessHandler;
-    @Autowired
-    private JWTUtil jwtUtil;
+
+    @Bean
+    BCryptPasswordEncoder bCryptPasswordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+    //AuthenticationManager Bean 등록
+	@Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf((auth) -> auth.disable());
         http.httpBasic((basic) -> basic.disable());
-
-        // 폼로그인 우선 현재는 미사용
         http.formLogin((auth) -> auth.disable());
 
-        http.addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        // 로그인 필터 
+        http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
         // oauth2
+        
         http.oauth2Login((oauth2) -> {
             oauth2.userInfoEndpoint((userInfoEndpointConfig) -> {
                 userInfoEndpointConfig.userService(CustomOAuth2UserService);
@@ -50,6 +70,10 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/","/test").permitAll()
+
+                // 토큰 전송용
+                .requestMatchers("/reissue").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated();
         });
 

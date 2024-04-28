@@ -8,4 +8,5 @@ import com.example.kakao.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     UserEntity findByUsername(String username);
+    
 }

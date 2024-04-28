@@ -59,8 +59,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new CustomOAuth2User(userDTO);
         }
         else {
-            existData.setEmail(oAuth2Response.getEmail());
-            existData.setName(oAuth2Response.getName());
+            existData.updateUserInfo(oAuth2Response.getEmail(), oAuth2Response.getName());
             userRepository.save(existData); // 바뀐게 잇나 없나 확인 해서 업데이트
 
             UserDTO userDTO = new UserDTO();

@@ -1,51 +1,28 @@
 package com.example.kakao.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-
-import com.example.kakao.DTO.DreamBoardDTO;
-import com.example.kakao.DTO.ScrollDTO;
-import com.example.kakao.service.DreamBoardFileServie;
-import com.example.kakao.service.DreamBoardService;
 
 @RestController
 @RequestMapping("/api")
 public class DreamBoardController {
-
+    /*
     @Autowired
     private DreamBoardService boardService;
     @Autowired
     private DreamBoardFileServie boardFileService;
 
     @GetMapping("/dreamBoards")
-    public ResponseEntity<List<DreamBoardDTO>> getBoardList(@ModelAttribute ScrollDTO sc){
-        List<DreamBoardDTO> list = boardService.getPagingList(null, 0);
+    public ResponseEntity<List<DreamBoardDTO>> getBoardList(@ModelAttribute ScrollRequest sc){
+        List<DreamBoardDTO> list = boardService.getPagingList(sc.getLastItemIdx(), sc.getSize(), sc.getCategoryNum(), sc.getSearch());
+        
         return ResponseEntity.ok().body(list);
     }
 
     @GetMapping("/dreamBoards/{idx}")
     public ResponseEntity<DreamBoardDTO> getDreamBoardByIdx(@PathVariable(name = "idx") Long idx) {
-        var dto = new DreamBoardDTO();
-        return ResponseEntity.ok().body(dto);
+        DreamBoardDTO res = new DreamBoardDTO();
+        return ResponseEntity.ok().body(res);
     }
     
     @PostMapping(value = "/dreamBoards", consumes = "multipart/form-data; charset=UTF-8")
@@ -93,4 +70,5 @@ public class DreamBoardController {
     public ResponseEntity<Boolean> deleteDreamBoardByIdx(@PathVariable(name = "idx") Long idx){
         return ResponseEntity.ok().body(true);
     }
+     */
 }
