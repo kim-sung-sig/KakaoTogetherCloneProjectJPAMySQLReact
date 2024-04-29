@@ -9,6 +9,8 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.example.kakao.entity.UserEntity;
+
 import io.jsonwebtoken.Jwts;
 
 @Component
@@ -57,5 +59,9 @@ public class JWTUtil {
 
     public String getCategory(String token){
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+    }
+
+    public Boolean validateToken(String token, UserEntity user){
+        return getUsername(token).equals(user.getUsername());
     }
 }

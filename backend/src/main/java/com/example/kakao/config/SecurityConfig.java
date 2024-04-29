@@ -17,8 +17,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.kakao.jwt.JWTFilter;
-import com.example.kakao.jwt.JWTUtil;
-import com.example.kakao.jwt.LoginFilter;
 import com.example.kakao.service.CustomOAuth2UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,12 +24,6 @@ import jakarta.servlet.http.HttpServletRequest;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final AuthenticationConfiguration authenticationConfiguration;
-    private final JWTUtil jwtUtil;
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil) {
-        this.authenticationConfiguration = authenticationConfiguration;
-        this.jwtUtil = jwtUtil;
-    }
     
     @Autowired
     private CustomOAuth2UserService CustomOAuth2UserService;
@@ -51,28 +43,29 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf((auth) -> auth.disable());
-        http.httpBasic((basic) -> basic.disable());
-        http.formLogin((auth) -> auth.disable());
+        http
+            .csrf((auth) -> auth.disable())
+            .httpBasic((basic) -> basic.disable())
+            .formLogin((auth) -> auth.disable())
 
-        // 로그인 필터 
-        http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
-        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
-        // oauth2
-        
-        http.oauth2Login((oauth2) -> {
-            oauth2.userInfoEndpoint((userInfoEndpointConfig) -> {
-                userInfoEndpointConfig.userService(CustomOAuth2UserService);
-            }).successHandler(customSuccessHandler);
-        });
+            // 로그인 필터
+            .addFilterBefore(new JWTFilter(), UsernamePasswordAuthenticationFilter.class)
+            // oauth
+            .oauth2Login((oauth2) -> {
+                oauth2.userInfoEndpoint((userInfoEndpointConfig) -> {
+                    userInfoEndpointConfig.userService(CustomOAuth2UserService);
+                })
+                .successHandler(customSuccessHandler)// 성공핸들러
+                .failureHandler(null); // 실패핸들러
+            });
 
         // 경로별 인가작업
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/","/test").permitAll()
-
-                // 토큰 전송용
+                // 토큰 재발급
                 .requestMatchers("/reissue").permitAll()
+                // 스웨거
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated();
         });

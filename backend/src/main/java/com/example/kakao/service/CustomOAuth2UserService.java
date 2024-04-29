@@ -40,7 +40,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
         String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
-        UserEntity existData = userRepository.findByUsername(username); // 이미 로그인을 한번 이상 했는지?
+        UserEntity existData = userRepository.findByUsername(username).get(); // 이미 로그인을 한번 이상 했는지?
 
         if (existData == null) {
             UserEntity userEntity = UserEntity.builder()
