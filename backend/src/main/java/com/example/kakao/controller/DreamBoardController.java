@@ -1,34 +1,21 @@
 package com.example.kakao.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.example.kakao.DTO.DreamBoardDTO;
-import com.example.kakao.DTO.request.ScrollRequest;
-import com.example.kakao.jwt.JWTService;
+import com.example.kakao.DTO.StatusDTO;
 import com.example.kakao.jwt.JWTUtil;
 import com.example.kakao.service.DreamBoardService;
-
-import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/api/dreamBoards")
@@ -37,7 +24,7 @@ public class DreamBoardController {
     @Autowired
     private DreamBoardService boardService;
     @Autowired
-    private JWTService jwtService;
+    private JWTUtil jwtUtil;
 
     /*
     @GetMapping(value = {"","/"})
@@ -55,11 +42,16 @@ public class DreamBoardController {
     }
     
     @PostMapping(value = {"","/"}, consumes = "multipart/form-data; charset=UTF-8")
-    public ResponseEntity<Boolean> insertDreamBoard(@RequestHeader("access") String accessToken ,@ModelAttribute DreamBoardDTO dto, MultipartHttpServletRequest request) {
-        if(jwtService.validateToken(accessToken)){
-            
+    public ResponseEntity<Object> insertDreamBoard(@RequestHeader("access") String accessToken ,@ModelAttribute DreamBoardDTO dto, MultipartHttpServletRequest request) {
+        if (accessToken == null || !jwtUtil.validateToken(accessToken)) {
+            return ResponseEntity.badRequest().body(new StatusDTO(HttpStatus.BAD_REQUEST.value(), "Invalid accessToken"));
         }
-        return ResponseEntity.ok().body(true);
+        boolean result = boardService.saveDreamBoard(dto, request);
+        if (result) {
+            return ResponseEntity.ok().body(new StatusDTO(HttpStatus.OK.value(), "success"));
+        } else {
+            return ResponseEntity.badRequest().body(new StatusDTO(HttpStatus.BAD_REQUEST.value(), "Failed to save DreamBoard"));
+        }
     }
     /*
     @PutMapping("/{idx}")

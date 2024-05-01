@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.kakao.entity.UserEntity;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 @Component
@@ -22,11 +23,20 @@ public class JWTUtil {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
+    public boolean validateToken(String token) {
+        try{
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     /**
      * 토큰 생성
-     * @param username
-     * @param role
-     * @param expiredMs
+     * @param username // 아이디?
+     * @param role // 권한
+     * @param expiredMs // 만료일
      * @return
      */
     public String createJwt(String category, String username, String role, Long expiredMs) {
@@ -59,9 +69,5 @@ public class JWTUtil {
 
     public String getCategory(String token){
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
-    }
-
-    public Boolean validateToken(String token, UserEntity user){
-        return getUsername(token).equals(user.getUsername());
     }
 }

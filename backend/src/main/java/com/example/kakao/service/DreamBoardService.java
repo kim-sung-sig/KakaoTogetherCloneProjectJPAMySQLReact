@@ -5,22 +5,35 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.example.kakao.DTO.DreamBoardDTO;
+import com.example.kakao.repository.DreamBoardRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class DreamBoardService {
 
+    @Autowired
+    private DreamBoardRepository dreamBoardRepository;
+
+
+    // 리스트 얻기
+
+    // 1개 얻기
+    public DreamBoardDTO getDreamBoardByIdx(Long id) {
+        return null;
+    }
+
     // 저장하기
     @Transactional
-    public int saveDreamBoard(DreamBoardDTO dto, MultipartHttpServletRequest request){
-        int result = 0;
+    public boolean saveDreamBoard(DreamBoardDTO dto, MultipartHttpServletRequest request){
+        boolean result = false;
         String ipAddress = request.getRemoteAddr();
         String uploadPath = request.getServletContext().getRealPath("/upload/");
         File file2 = new File(uploadPath);
@@ -44,6 +57,7 @@ public class DreamBoardService {
                         }
                     }
                 }
+                result = true;
             } catch (IOException e) {
                 e.printStackTrace();
             }

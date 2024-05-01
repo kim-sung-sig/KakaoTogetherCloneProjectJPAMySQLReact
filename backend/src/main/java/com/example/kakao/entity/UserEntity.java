@@ -25,8 +25,8 @@ import lombok.ToString;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx", updatable = false)
-    private Long idx;
+    @Column(name = "id", updatable = false)
+    private Long id;
 
     @Column(name = "username", nullable = false, unique = true)
     private String username;

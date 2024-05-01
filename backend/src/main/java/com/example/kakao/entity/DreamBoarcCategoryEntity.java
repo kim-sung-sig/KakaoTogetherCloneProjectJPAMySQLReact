@@ -19,8 +19,8 @@ import lombok.ToString;
 public class DreamBoarcCategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idx", updatable = false)
-    private Long idx;
+    @Column(name = "id", updatable = false)
+    private Long id;
 
     @Column(name = "category_name", nullable = false)
     private String categoryName;
