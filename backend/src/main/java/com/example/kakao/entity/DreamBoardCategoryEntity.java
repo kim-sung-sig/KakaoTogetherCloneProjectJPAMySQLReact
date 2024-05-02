@@ -16,7 +16,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @Entity
-public class DreamBoarcCategoryEntity {
+public class DreamBoardCategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false)

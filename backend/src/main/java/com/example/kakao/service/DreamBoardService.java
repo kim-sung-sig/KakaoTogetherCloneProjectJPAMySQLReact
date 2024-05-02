@@ -3,6 +3,7 @@ package com.example.kakao.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.example.kakao.DTO.DreamBoardDTO;
+import com.example.kakao.entity.DreamBoardEntity;
 import com.example.kakao.repository.DreamBoardRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class DreamBoardService {
 
@@ -27,6 +31,13 @@ public class DreamBoardService {
 
     // 1개 얻기
     public DreamBoardDTO getDreamBoardByIdx(Long id) {
+        DreamBoardDTO dto = null;
+        Optional<DreamBoardEntity> optional = dreamBoardRepository.findById(id);
+        if(optional.isPresent()){
+            DreamBoardEntity entity = optional.get();
+            dto = new DreamBoardDTO();
+            log.info("아니 좀 나와주세요.. {}", entity);
+        }
         return null;
     }
 
@@ -35,6 +46,7 @@ public class DreamBoardService {
     public boolean saveDreamBoard(DreamBoardDTO dto, MultipartHttpServletRequest request){
         boolean result = false;
         String ipAddress = request.getRemoteAddr();
+        // DreamBoardEntity boardEntity = DreamBoardEntity.builder().category(new DreamBoarcCategoryEntity(null, null))
         String uploadPath = request.getServletContext().getRealPath("/upload/");
         File file2 = new File(uploadPath);
         if(!file2.exists()){

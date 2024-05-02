@@ -63,6 +63,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/","/test").permitAll()
+                .requestMatchers("/api/**").permitAll()
                 // 토큰 재발급
                 .requestMatchers("/reissue").permitAll()
                 // 스웨거

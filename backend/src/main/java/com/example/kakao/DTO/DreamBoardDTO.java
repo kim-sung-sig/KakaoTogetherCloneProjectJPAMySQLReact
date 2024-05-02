@@ -11,9 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DreamBoardDTO {
-    private Long idx;
+    private Long id;
+
     private Long userFk;
+    private String name;
+    private String userProfileImg;
+
     private Long categoryFk;
+    private String categoryName;
+
     private String thumbnail;
     private String tag1;
     private String tag2;
@@ -32,8 +38,4 @@ public class DreamBoardDTO {
 
     // 파일을 넘겨주기 위한
     private List<String> fileList;
-
-    private String name;
-    private String userProfileImg;
-    private String categoryName;
 }

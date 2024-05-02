@@ -32,7 +32,7 @@ public class DreamBoardEntity {
 
     @JoinColumn(name = "category_fk", nullable = false)
     @ManyToOne
-    private DreamBoarcCategoryEntity category;
+    private DreamBoardCategoryEntity category;
 
     @Column(name = "title", nullable = false)
     private String title;
