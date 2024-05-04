@@ -62,7 +62,8 @@ public class SecurityConfig {
         // 경로별 인가작업
         http.authorizeHttpRequests((auth) -> {
             auth
-                .requestMatchers("/","/test").permitAll()
+                .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**").permitAll()
+                .requestMatchers("/").permitAll()
                 // 토큰 재발급
                 .requestMatchers("/reissue").permitAll()
                 // 스웨거

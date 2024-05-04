@@ -1,4 +1,4 @@
-package com.example.kakao.DTO.request;
+package com.example.kakao.global.DTO.request;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.example.kakao.domain.dreamBoard.entity;
+package com.example.kakao.domain.dreamboard.entity;
 
 import com.example.kakao.global.user.entity.UserEntity;
 
@@ -31,4 +31,5 @@ public class DreamBoardLikeEntity {
     @ManyToOne
     @JoinColumn(name = "board_fk", nullable = false)
     private DreamBoardEntity board;
+    
 }

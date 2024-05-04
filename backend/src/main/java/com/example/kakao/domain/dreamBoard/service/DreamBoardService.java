@@ -1,4 +1,4 @@
-package com.example.kakao.domain.dreamBoard.service;
+package com.example.kakao.domain.dreamboard.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,10 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.example.kakao.domain.dreamBoard.entity.DreamBoardEntity;
-import com.example.kakao.domain.dreamBoard.repository.DreamBoardRepository;
+import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
+import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
+import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
+import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -22,6 +23,8 @@ public class DreamBoardService {
 
     @Autowired
     private DreamBoardRepository dreamBoardRepository;
+    @Autowired
+    private DreamBoardFileRepository dreamBoardFileRepository;
 
     // 리스트 얻기
     public List<DreamBoardEntity> getList(){
@@ -29,18 +32,55 @@ public class DreamBoardService {
         return list;
     }
     // 1개 얻기
-    public Optional<DreamBoardEntity> getDreamBoardById(Long id) {
+    public Optional<DreamBoardEntity> findById(Long id) {
         Optional<DreamBoardEntity> optional = dreamBoardRepository.findById(id);
         return optional;
     }
 
     // 저장하기
     @Transactional
-    public boolean saveDreamBoard(DreamBoardEntity entity, MultipartHttpServletRequest request){
+    public boolean saveDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
         boolean result = false;
-        // String ipAddress = request.getRemoteAddr();
-        // DreamBoardEntity boardEntity = DreamBoardEntity.builder().category(new DreamBoarcCategoryEntity(null, null))
-        String uploadPath = request.getServletContext().getRealPath("/upload/");
+        File file2 = new File(uploadPath);
+        if(!file2.exists()){
+            file2.mkdirs();
+        }
+        boolean isFirstFile = true;
+        
+        if(files != null && files.size() > 0){ // 사진이 있는 경우
+            try {
+                for(MultipartFile file : files) { // 사진을 조회하며 저장
+                    if(file != null && file.getSize() > 0){
+                        String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        File saveFile = new File(uploadPath, saveFileName);
+                        FileCopyUtils.copy(file.getBytes(), saveFile);
+                        
+                        if(isFirstFile){
+                            entity.setThumbnail(saveFileName); // 썸네일 넣어주고
+                            dreamBoardRepository.save(entity); // 저장
+                            isFirstFile = false;
+                        }
+                        DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
+                                                            .board(DreamBoardEntity.builder().id(entity.getId()).build())
+                                                            .saveFileName(saveFileName)
+                                                            .build();
+                        dreamBoardFileRepository.save(fileEntity);
+                    }
+                }
+                result = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } // 사진이 없으면 false
+        return result;
+    }
+
+    // 수정하기
+    @Transactional
+    public boolean updateDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
+        boolean result = false;
+        // String uploadPath = request.getServletContext().getRealPath("/upload/");
+        /*
         File file2 = new File(uploadPath);
         if(!file2.exists()){
             file2.mkdirs();
@@ -69,8 +109,21 @@ public class DreamBoardService {
         } else { // 사진이 없는 경우
 
         }
-
+         */
         return result;
     }
 
+
+    // 삭제하기
+    @Transactional
+    public boolean deleteById(Long id){
+        boolean result = false;
+        try {
+            dreamBoardRepository.deleteById(id);
+            result = true;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
 }

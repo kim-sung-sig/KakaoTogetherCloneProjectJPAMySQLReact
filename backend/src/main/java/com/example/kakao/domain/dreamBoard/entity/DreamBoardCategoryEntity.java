@@ -1,4 +1,4 @@
-package com.example.kakao.domain.dreamBoard.entity;
+package com.example.kakao.domain.dreamboard.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,21 +7,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-@Getter @ToString
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 public class DreamBoardCategoryEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false)
     private Long id;
 
     @Column(name = "category_name", nullable = false)
     private String categoryName;
+    
 }

@@ -1,36 +1,48 @@
-package com.example.kakao.domain.dreamBoard.entity;
+package com.example.kakao.domain.dreamboard.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.kakao.global.jpa.BaseEntity;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import com.example.kakao.global.user.entity.UserEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Getter @Setter
+@EntityListeners(AuditingEntityListener.class)
+@Data
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class DreamBoardEntity extends BaseEntity {
+public class DreamBoardEntity {
 
-    @JoinColumn(name ="user_fk", nullable = false)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @ManyToOne
+    @JoinColumn(name ="user_fk", nullable = false)
     private UserEntity user;
 
-    @JoinColumn(name = "category_fk", nullable = false)
     @ManyToOne
+    @JoinColumn(name = "category_fk", nullable = false)
     private DreamBoardCategoryEntity category;
 
     @Column(name = "title", nullable = false)
@@ -66,19 +78,28 @@ public class DreamBoardEntity extends BaseEntity {
     @Column(name = "ip", nullable = false)
     private String ip;
 
+    @CreatedDate
+    @Column(name = "create_date")
+    private LocalDateTime createDate;
+
+    @LastModifiedDate
+    @Column(name = "modified_date")
+    private LocalDateTime modifiedDate;
 
 
-
-    
-    @OneToMany(mappedBy = "board") // likeEntity의 변수명
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true) // likeEntity의 변수명
     private List<DreamBoardLikeEntity> likeEntitys;
 
-    @OneToMany(mappedBy = "board")
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamBoardCommentEntity> commentEntitys;
 
-    @OneToMany(mappedBy = "board")
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamBoardDonationEntity> donationEntitys;
 
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DreamBoardFileEntity> fileEntities;
+
+    
     public int getLikeCount(){
         return likeEntitys != null ? likeEntitys.size() : 0;
     }

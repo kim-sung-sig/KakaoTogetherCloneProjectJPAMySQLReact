@@ -1,4 +1,4 @@
-package com.example.kakao.domain.dreamBoard.entity;
+package com.example.kakao.domain.dreamboard.entity;
 
 import java.util.Date;
 
@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 public class DreamBoardCommentEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,4 +43,5 @@ public class DreamBoardCommentEntity {
 
     @Column(name = "ip")
     private String ip;
+    
 }

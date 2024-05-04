@@ -24,6 +24,7 @@ import lombok.experimental.SuperBuilder;
 @EntityListeners(AuditingEntityListener.class)
 @ToString
 public class BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,4 +34,5 @@ public class BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime modifiedDate;
+    
 }
