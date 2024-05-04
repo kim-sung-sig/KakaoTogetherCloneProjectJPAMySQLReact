@@ -126,4 +126,9 @@ public class DreamBoardService {
         }
         return result;
     }
+
+    // 조회수 증가
+    public void incrementReadCount(Long id){
+        dreamBoardRepository.incrementReadCount(id);
+    }
 }

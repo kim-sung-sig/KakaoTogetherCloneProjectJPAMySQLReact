@@ -15,10 +15,18 @@ import io.jsonwebtoken.Jwts;
 @Component
 public class JWTUtil {
 
+    @Value("${custom.jwt.secretKey}")
+    private String originSecretKey;
+
     private SecretKey secretKey;
 
-    public JWTUtil(@Value("${custom.jwt.secretKey}") String secret) {
-        secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+    private SecretKey _getSecretKey(){
+        return new SecretKeySpec(originSecretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+    }
+
+    public SecretKey getSecretKey(){
+        if(secretKey == null) secretKey = _getSecretKey();
+        return secretKey;
     }
 
     public boolean validateToken(String token) {
@@ -32,20 +40,22 @@ public class JWTUtil {
 
     /**
      * 토큰 생성
-     * @param username // 아이디?
+     * @param id // 회원번호
+     * @param username // 아이디
      * @param role // 권한
      * @param expiredMs // 만료일
      * @return
      */
-    public String createJwt(String category, String username, String role, Long expiredMs) {
+    public String createJwt(String category, Long id, String username, String role, Long expiredMs) {
         return Jwts.builder()
-                .claim("category", category)
-                .claim("username", username)
-                .claim("role", role)
-                .issuedAt(new Date(System.currentTimeMillis())) // 생성시각
-                .expiration(new Date(System.currentTimeMillis() + expiredMs)) // 만료시각
-                .signWith(secretKey)
-                .compact();
+            .claim("category", category) // accessToken OR refreshToken
+            .claim("id", id)
+            .claim("username", username)
+            .claim("role", role)
+            .issuedAt(new Date(System.currentTimeMillis())) // 생성시각
+            .expiration(new Date(System.currentTimeMillis() + expiredMs)) // 만료시각
+            .signWith(getSecretKey())
+            .compact();
     }
 
     /**
@@ -55,6 +65,10 @@ public class JWTUtil {
      */
     public Boolean isExpired(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+    }
+
+    public Long getId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("id", Long.class);
     }
 
     public String getUsername(String token) {

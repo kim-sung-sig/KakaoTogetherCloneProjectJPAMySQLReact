@@ -44,6 +44,7 @@ dependencies {
     // https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
     implementation 'com.querydsl:querydsl-jpa'
+
 }
 
 tasks.named('test') {

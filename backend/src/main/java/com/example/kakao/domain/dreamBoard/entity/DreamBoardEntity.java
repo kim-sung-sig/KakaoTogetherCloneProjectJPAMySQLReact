@@ -86,6 +86,9 @@ public class DreamBoardEntity {
     @Column(name = "modified_date")
     private LocalDateTime modifiedDate;
 
+    @Column(name = "read_count")
+    private int readCount;
+
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true) // likeEntity의 변수명
     private List<DreamBoardLikeEntity> likeEntitys;

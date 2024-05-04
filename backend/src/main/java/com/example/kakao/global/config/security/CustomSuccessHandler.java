@@ -33,15 +33,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         //OAuth2User
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
+        Long userId = customUserDetails.getId();
         String username = customUserDetails.getUsername();
+
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
-        log.info("로그인 성공 ~~~~~ {} {}", username, role);
+
+        log.info("로그인 성공 ~~~~~ {} {} {}", userId, username, role);
         
-        String access = jwtUtil.createJwt("access", username, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        String access = jwtUtil.createJwt("access", userId, username, role, 600000L);
+        String refresh = jwtUtil.createJwt("refresh", userId, username, role, 86400000L);
         
         Map<String, String> tokenResponse = new HashMap<>();
         tokenResponse.put("access", access);
