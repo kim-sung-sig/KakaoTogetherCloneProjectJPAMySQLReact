@@ -131,4 +131,5 @@ public class DreamBoardService {
     public void incrementReadCount(Long id){
         dreamBoardRepository.incrementReadCount(id);
     }
+
 }

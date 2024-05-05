@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.controller;
+package com.example.kakao.domain.user.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

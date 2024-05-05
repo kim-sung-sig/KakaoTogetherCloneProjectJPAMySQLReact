@@ -7,7 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.example.kakao.global.user.entity.UserEntity;
+import com.example.kakao.domain.user.entity.UserEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

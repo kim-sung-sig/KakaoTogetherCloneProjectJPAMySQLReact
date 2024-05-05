@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.dto;
+package com.example.kakao.domain.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

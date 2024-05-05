@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.service;
+package com.example.kakao.domain.user.service;
 
 public interface UserService {
     // 1. 프로필 사진 변경 하기

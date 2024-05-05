@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.oauth;
+package com.example.kakao.domain.user.oauth;
 
 public interface OAuth2Response {
 

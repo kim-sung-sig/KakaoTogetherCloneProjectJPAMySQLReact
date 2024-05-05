@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.service;
+package com.example.kakao.domain.user.service;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.entity;
+package com.example.kakao.domain.user.entity;
 
 import java.time.LocalDateTime;
 

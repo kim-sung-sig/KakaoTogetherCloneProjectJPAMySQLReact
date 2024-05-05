@@ -74,23 +74,24 @@ public class JWTTestApp {
     @Test
     @DisplayName("jwt 토큰 유효성 검사! 2 - 시간 검증")
     void valid2Jwt(){
-        String token = jwtUtil.createJwt("accessToken", 1L, "test", "ROLE_USER", 1000*60*1L); // 1분!
-        assertFalse(jwtUtil.isExpired(token));
+        String token = jwtUtil.createJwt("accessToken", 1L, "test", "ROLE_USER", 1000*10*1L); // 10초
+        assertFalse(jwtUtil.isExpired(token)); // 만료아님(False)
         try {
-            Thread.sleep(1000*7*10);
+            Thread.sleep(1000*15*1); // 15초 기다림
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        assertTrue(jwtUtil.isExpired(token));
+        assertTrue(jwtUtil.isExpired(token)); // 만료임(True)
     }
 
     @Test
     @DisplayName("jwt 토큰 정보검사")
     void valid3Jwt(){
         String token = jwtUtil.createJwt("accessToken", 1L, "test", "ROLE_USER", 1000*60*1L); // 1분!
-
-        System.out.println("accessToken : " + token);
-        assertNotNull(token);
+        assertEquals(jwtUtil.getCategory(token), "accessToken");
+        assertEquals(jwtUtil.getId(token), 1L);
+        assertEquals(jwtUtil.getUsername(token), "test");
+        assertEquals(jwtUtil.getRole(token), "ROLE_USER");
     }
 
 }

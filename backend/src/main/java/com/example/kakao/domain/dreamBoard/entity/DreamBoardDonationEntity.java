@@ -2,7 +2,7 @@ package com.example.kakao.domain.dreamboard.entity;
 
 import java.util.Date;
 
-import com.example.kakao.global.user.entity.UserEntity;
+import com.example.kakao.domain.user.entity.UserEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

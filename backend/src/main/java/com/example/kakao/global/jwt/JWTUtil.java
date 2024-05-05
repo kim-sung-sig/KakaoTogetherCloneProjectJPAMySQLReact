@@ -64,7 +64,11 @@ public class JWTUtil {
      * @return
      */
     public Boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+        try{
+            return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
+        } catch (JwtException e){
+            return true; // 예외가 발생하면 만료된것임
+        }
     }
 
     public Long getId(String token) {
@@ -82,4 +86,5 @@ public class JWTUtil {
     public String getCategory(String token){
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
+    
 }

@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.oauth;
+package com.example.kakao.domain.user.oauth;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,7 +7,7 @@ import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import com.example.kakao.global.user.dto.UserDTO;
+import com.example.kakao.domain.user.dto.UserDTO;
 
 public class CustomOAuth2User implements OAuth2User {
 

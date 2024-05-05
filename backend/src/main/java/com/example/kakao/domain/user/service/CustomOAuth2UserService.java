@@ -1,4 +1,4 @@
-package com.example.kakao.global.user.service;
+package com.example.kakao.domain.user.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -7,13 +7,13 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.example.kakao.global.user.dto.UserDTO;
-import com.example.kakao.global.user.entity.UserEntity;
-import com.example.kakao.global.user.oauth.CustomOAuth2User;
-import com.example.kakao.global.user.oauth.GoogleResponse;
-import com.example.kakao.global.user.oauth.NaverResponse;
-import com.example.kakao.global.user.oauth.OAuth2Response;
-import com.example.kakao.global.user.repository.UserRepository;
+import com.example.kakao.domain.user.dto.UserDTO;
+import com.example.kakao.domain.user.entity.UserEntity;
+import com.example.kakao.domain.user.oauth.CustomOAuth2User;
+import com.example.kakao.domain.user.oauth.GoogleResponse;
+import com.example.kakao.domain.user.oauth.NaverResponse;
+import com.example.kakao.domain.user.oauth.OAuth2Response;
+import com.example.kakao.domain.user.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 

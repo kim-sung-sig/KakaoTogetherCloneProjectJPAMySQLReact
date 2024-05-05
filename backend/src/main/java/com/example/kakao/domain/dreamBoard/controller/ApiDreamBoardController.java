@@ -22,9 +22,9 @@ import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
+import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.global.DTO.request.ScrollRequest;
 import com.example.kakao.global.RsData.RsData;
-import com.example.kakao.global.user.entity.UserEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityManager;

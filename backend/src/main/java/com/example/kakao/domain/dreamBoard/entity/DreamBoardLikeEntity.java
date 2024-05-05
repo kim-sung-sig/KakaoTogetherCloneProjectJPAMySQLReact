@@ -1,6 +1,6 @@
 package com.example.kakao.domain.dreamboard.entity;
 
-import com.example.kakao.global.user.entity.UserEntity;
+import com.example.kakao.domain.user.entity.UserEntity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

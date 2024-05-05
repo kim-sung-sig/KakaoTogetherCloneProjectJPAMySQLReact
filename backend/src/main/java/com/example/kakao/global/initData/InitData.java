@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardCategoryRepository;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
-import com.example.kakao.global.user.entity.UserEntity;
-import com.example.kakao.global.user.repository.UserRepository;
+import com.example.kakao.domain.user.entity.UserEntity;
+import com.example.kakao.domain.user.repository.UserRepository;
 
 @Configuration
 public class InitData {

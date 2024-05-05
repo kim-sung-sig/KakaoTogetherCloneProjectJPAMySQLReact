@@ -13,8 +13,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.example.kakao.domain.user.oauth.CustomOAuth2User;
 import com.example.kakao.global.jwt.JWTUtil;
-import com.example.kakao.global.user.oauth.CustomOAuth2User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;

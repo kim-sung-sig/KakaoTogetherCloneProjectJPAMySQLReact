@@ -16,8 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import com.example.kakao.domain.user.service.CustomOAuth2UserService;
 import com.example.kakao.global.jwt.JWTFilter;
-import com.example.kakao.global.user.service.CustomOAuth2UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
