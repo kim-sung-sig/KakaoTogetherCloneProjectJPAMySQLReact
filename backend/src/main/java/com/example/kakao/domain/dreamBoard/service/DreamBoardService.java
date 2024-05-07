@@ -7,28 +7,38 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
+import com.example.kakao.domain.dreamboard.repository.DreamBoardCategoryRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
+// @RequiredArgsConstructor
 public class DreamBoardService {
 
+    // private final JPAQueryFactory queryFactory;
     @Autowired
     private DreamBoardRepository dreamBoardRepository;
     @Autowired
     private DreamBoardFileRepository dreamBoardFileRepository;
+    @Autowired
+    private DreamBoardCategoryRepository dreamBoardCategoryRepository;
 
     // 리스트 얻기
-    public List<DreamBoardEntity> getList(){
-        List<DreamBoardEntity> list = dreamBoardRepository.findAll();
+    public List<DreamBoardEntity> getEntitysWithPagination(Long lastItemId, int size, Long categoryId, String search){
+        List<DreamBoardEntity> list = null;
         return list;
     }
     // 1개 얻기

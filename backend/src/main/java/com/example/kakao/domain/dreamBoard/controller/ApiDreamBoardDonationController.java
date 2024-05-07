@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
-@RequestMapping("/api/v1/dreamBoardComment")
+@RequestMapping("/api/v1/dreamBoard")
 public class ApiDreamBoardDonationController {
     
     @Operation(summary = "후원 다건 조회", description = "게시글 id 에 해당하는 후원 다건 조회")

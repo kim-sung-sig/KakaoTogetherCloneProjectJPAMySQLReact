@@ -1,4 +1,4 @@
-package com.example.kakao.global.DTO.response;
+package com.example.kakao.global.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

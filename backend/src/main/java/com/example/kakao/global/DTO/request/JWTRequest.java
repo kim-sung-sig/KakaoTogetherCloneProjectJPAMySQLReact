@@ -1,4 +1,4 @@
-package com.example.kakao.global.DTO.request;
+package com.example.kakao.global.dto.request;
 
 public class JWTRequest {
 

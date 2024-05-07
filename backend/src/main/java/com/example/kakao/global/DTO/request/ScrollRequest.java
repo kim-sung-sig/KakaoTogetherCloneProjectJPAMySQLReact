@@ -1,10 +1,10 @@
-package com.example.kakao.global.DTO.request;
+package com.example.kakao.global.dto.request;
 
 import lombok.Data;
 
 @Data
 public class ScrollRequest {
-    Long lastItemIdx;
+    Long lastItemId;
     Integer size;
     Long categoryNum;
     String search;

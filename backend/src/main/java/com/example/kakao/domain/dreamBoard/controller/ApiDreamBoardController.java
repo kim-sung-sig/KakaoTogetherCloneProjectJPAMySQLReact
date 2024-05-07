@@ -23,8 +23,8 @@ import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
 import com.example.kakao.domain.user.entity.UserEntity;
-import com.example.kakao.global.DTO.request.ScrollRequest;
 import com.example.kakao.global.RsData.RsData;
+import com.example.kakao.global.dto.request.ScrollRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.persistence.EntityManager;
@@ -45,7 +45,10 @@ public class ApiDreamBoardController {
     @Operation(summary = "게시글 다건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
     @GetMapping(value = "")
     public RsData< List<DreamBoardResponse> > getBoardList(@ModelAttribute ScrollRequest sc){
-        List<DreamBoardEntity> list = boardService.getList();
+        if(sc.getSize() == null){
+            return RsData.of("F-0", "size를 넣어주세요.");
+        }
+        List<DreamBoardEntity> list = boardService.getEntitysWithPagination(sc.getLastItemId(), sc.getSize(), sc.getCategoryNum(), sc.getSearch());
         List<DreamBoardResponse> resultList = null;
         if(list != null && list.size() != 0){
             resultList = list.stream()
