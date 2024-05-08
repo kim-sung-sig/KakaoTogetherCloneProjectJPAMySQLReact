@@ -7,22 +7,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
-import com.example.kakao.domain.dreamboard.repository.DreamBoardCategoryRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 
 @Service
 // @RequiredArgsConstructor
@@ -33,13 +30,12 @@ public class DreamBoardService {
     private DreamBoardRepository dreamBoardRepository;
     @Autowired
     private DreamBoardFileRepository dreamBoardFileRepository;
-    @Autowired
-    private DreamBoardCategoryRepository dreamBoardCategoryRepository;
 
     // 리스트 얻기
     public List<DreamBoardEntity> getEntitysWithPagination(Long lastItemId, int size, Long categoryId, String search){
-        List<DreamBoardEntity> list = null;
-        return list;
+        Pageable pageable = PageRequest.of(0, size);
+        Page<DreamBoardEntity> page = dreamBoardRepository.search(lastItemId, categoryId, search, pageable);
+        return page.getContent();
     }
     // 1개 얻기
     public Optional<DreamBoardEntity> findById(Long id) {
@@ -89,37 +85,6 @@ public class DreamBoardService {
     @Transactional
     public boolean updateDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
         boolean result = false;
-        // String uploadPath = request.getServletContext().getRealPath("/upload/");
-        /*
-        File file2 = new File(uploadPath);
-        if(!file2.exists()){
-            file2.mkdirs();
-        }
-        List<MultipartFile> fileList = request.getFiles("file");
-        boolean isFirstFile = true;
-        
-        if(fileList != null && fileList.size() > 0){ // 사진이 있는 경우
-            try {
-                for(var file : fileList) { // 사진을 조회하며 저장
-                    if(file != null && file.getSize() > 0){
-                        String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                        File saveFile = new File(uploadPath, saveFileName);
-                        FileCopyUtils.copy(file.getBytes(), saveFile);
-                        
-                        if(isFirstFile){
-
-                            isFirstFile = false;
-                        }
-                    }
-                }
-                result = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else { // 사진이 없는 경우
-
-        }
-         */
         return result;
     }
 

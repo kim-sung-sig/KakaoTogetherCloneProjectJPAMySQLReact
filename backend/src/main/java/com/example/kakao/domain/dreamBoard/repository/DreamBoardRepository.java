@@ -3,15 +3,16 @@ package com.example.kakao.domain.dreamboard.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 
-public interface DreamBoardRepository extends JpaRepository<DreamBoardEntity, Long>, JpaSpecificationExecutor<DreamBoardEntity> {
+@Repository
+public interface DreamBoardRepository extends JpaRepository<DreamBoardEntity, Long>, DreamBoardRepositoryCustom {
     
     // 1. 다건 조회
     Page<DreamBoardEntity> findAllByOrderByIdDesc(Pageable pageable);
