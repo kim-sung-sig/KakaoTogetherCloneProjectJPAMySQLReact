@@ -1,4 +1,4 @@
-package com.example.kakao.global.jwt;
+package com.example.kakao.global.jwt.util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;

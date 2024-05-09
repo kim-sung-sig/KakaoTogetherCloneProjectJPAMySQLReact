@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.kakao.domain.user.dto.UserDTO;
 import com.example.kakao.domain.user.oauth.CustomOAuth2User;
+import com.example.kakao.global.jwt.util.JWTUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;

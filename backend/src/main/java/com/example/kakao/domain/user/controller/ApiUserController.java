@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.kakao.domain.user.service.UserService;
-import com.example.kakao.global.jwt.JWTUtil;
+import com.example.kakao.global.jwt.util.JWTUtil;
 
 @RestController
 @RequestMapping("/api/v1/users")

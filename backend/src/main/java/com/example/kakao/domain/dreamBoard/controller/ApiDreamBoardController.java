@@ -1,14 +1,10 @@
 package com.example.kakao.domain.dreamboard.controller;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,19 +22,15 @@ import com.example.kakao.domain.dreamboard.dto.request.DreamBoardWriteRequest;
 import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
-import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
-import com.example.kakao.domain.dreamboard.repository.DreamBoardCategoryRepository;
-import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
-import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
+import com.example.kakao.domain.dreamboard.service.DreamBoardCategoryService;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
 import com.example.kakao.domain.user.entity.UserEntity;
-import com.example.kakao.domain.user.repository.UserRepository;
+import com.example.kakao.domain.user.service.UserService;
 import com.example.kakao.global.RsData.RsData;
 import com.example.kakao.global.dto.request.ScrollRequest;
-import com.example.kakao.global.jwt.JWTUtil;
+import com.example.kakao.global.jwt.util.JWTUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.Data;
@@ -54,15 +46,9 @@ public class ApiDreamBoardController {
     @Autowired
     private DreamBoardService boardService;
     @Autowired
-    private DreamBoardRepository dreamBoardRepository;
+    private UserService userService;
     @Autowired
-    private DreamBoardFileRepository dreamBoardFileRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private DreamBoardCategoryRepository dreamBoardCategoryRepository;
-    @Autowired
-    private EntityManager entityManager;
+    private DreamBoardCategoryService dreamBoardCategoryService;
 
 
     @Operation(summary = "게시글 다건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
@@ -106,15 +92,15 @@ public class ApiDreamBoardController {
         }
         if (!jwtUtil.validateToken(accessToken)){
             return RsData.of("F-6", "토큰만료");
-        }
+        } // 토큰 검증 통과
 
         Long userId = jwtUtil.getId(accessToken);
-        Optional<UserEntity> userEntity = userRepository.findById(userId);
-        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(writeRequest.getCategoryFk());
+        Optional<UserEntity> userEntity = userService.findById(userId);
+        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryService.findById(writeRequest.getCategoryFk());
         if(!userEntity.isPresent() || !categoryEntity.isPresent()){
             return RsData.of("F-7", "유효한 요청이 아닙니다.");
-        }
-        
+        } // 토큰 정보 통과
+
         DreamBoardEntity entity = DreamBoardEntity.builder()
                                     .user(userEntity.get())
                                     .category(categoryEntity.get())
@@ -123,45 +109,14 @@ public class ApiDreamBoardController {
                                     .targetPrice(writeRequest.getTargetPrice())
                                     .startDate(writeRequest.getStartDate()).endDate(writeRequest.getEndDate())
                                     .ip(request.getRemoteAddr()).build();
-
-        String uploadPath = request.getServletContext().getRealPath("/upload/");
-        File file2 = new File(uploadPath);
-        if(!file2.exists()){
-            file2.mkdirs();
-        }
-
-        boolean isFirstFile = true;
-        if(files != null && files.size() > 0){ // 사진이 있는 경우
-            try {
-                for(MultipartFile file : files) { // 사진을 조회하며 저장
-                    if(file != null && file.getSize() > 0){
-                        String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                        File saveFile = new File(uploadPath, saveFileName);
-                        FileCopyUtils.copy(file.getBytes(), saveFile);
-                        
-                        if(isFirstFile){ // 첫번째 사진인경우 썸네일로 저장
-                            entity.setThumbnail(saveFileName); // 썸네일 넣어주고
-                            dreamBoardRepository.save(entity); // 저장
-                            isFirstFile = false;
-                        }
-                        DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
-                                                            .board(DreamBoardEntity.builder().id(entity.getId()).build())
-                                                            .saveFileName(saveFileName)
-                                                            .build();
-                        dreamBoardFileRepository.save(fileEntity);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                return RsData.of("F-10", "저장중 문제 발생");
-            }
-        } else {
-            return RsData.of("F-10", "저장중 문제 발생");
-        }
         
-        entityManager.clear(); // 영속성 컨테스트 지우기
-        DreamBoardEntity entity2 = boardService.findById(entity.getId()).get();
-        return RsData.of("S-2", "게시글 저장 성공", new DreamBoardResponse(entity2));
+        String uploadPath = request.getServletContext().getRealPath("/upload/");
+        
+        return boardService.saveDreamBoard(entity, files, uploadPath).map(en -> 
+            RsData.of("S-2", "저장성공", new DreamBoardResponse(en))
+        ).orElseGet(() -> 
+            RsData.of("F-2", "저장실패")
+        );
     }
 
     /*

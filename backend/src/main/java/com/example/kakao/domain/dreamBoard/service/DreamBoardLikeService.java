@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardLikeEntity;
@@ -49,7 +48,6 @@ public class DreamBoardLikeService {
     }
     
     // 좋아요 취소하기
-    @Transactional
     public boolean deleteLike(Long boardId, Long userId){
         Optional<DreamBoardEntity> boardEntity = dreamBoardRepository.findById(boardId);
         Optional<UserEntity> userEntity = userRepository.findById(userId);

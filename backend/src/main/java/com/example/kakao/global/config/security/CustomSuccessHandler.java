@@ -14,10 +14,11 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import com.example.kakao.domain.user.oauth.CustomOAuth2User;
-import com.example.kakao.global.jwt.JWTUtil;
+import com.example.kakao.global.jwt.util.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -43,34 +44,35 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         log.info("로그인 성공 ~~~~~ {} {} {}", userId, username, role);
         
-        String access = jwtUtil.createJwt("access", userId, username, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", userId, username, role, 86400000L);
+        String access = jwtUtil.createJwt("accessToken", userId, username, role, 1000L*60*10); // 10분
+        // 리프래쉬 토큰 저장하기 + ??
+        String refresh = jwtUtil.createJwt("refreshToken", userId, username, role, 1000L*60*60*24); // 24시간
         
+        /*
         Map<String, String> tokenResponse = new HashMap<>();
-        tokenResponse.put("access", access);
-        tokenResponse.put("refresh", refresh);
+        tokenResponse.put("accessToken", access);
+        tokenResponse.put("refreshToken", refresh);
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpStatus.OK.value());
         response.getWriter().write(new ObjectMapper().writeValueAsString(tokenResponse)); // 토큰 리턴
-        /*
-        response.setHeader("access", access); // 엑세스 토큰 
-        response.addCookie(createCookie("refresh", refresh)); // 리프레쉬 토큰
-        response.setStatus(HttpStatus.OK.value());
-        response.sendRedirect("http://localhost:3000");
          */
+        response.setHeader("accessToken", access); // 엑세스 토큰 
+        response.addCookie(createCookie("refreshToken", refresh)); // 리프레쉬 토큰
+        response.setStatus(HttpStatus.OK.value());
+
     }
-    /*
+
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60*24*14);
+        cookie.setMaxAge(60*60*24); // 24시간
         //cookie.setSecure(true); // https 에서만
         cookie.setPath("/");
         cookie.setHttpOnly(true); // 자바스크립트로 제어불가
 
         return cookie;
     }
-     */
+
 }

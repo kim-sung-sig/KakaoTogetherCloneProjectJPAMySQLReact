@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.kakao.global.jwt.JWTUtil;
+import com.example.kakao.global.jwt.util.JWTUtil;
 
 import io.jsonwebtoken.security.Keys;
 

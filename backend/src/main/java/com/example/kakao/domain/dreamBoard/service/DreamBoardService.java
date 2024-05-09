@@ -19,13 +19,15 @@ import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 @Service
 // @RequiredArgsConstructor
 public class DreamBoardService {
 
-    // private final JPAQueryFactory queryFactory;
+    @Autowired
+    private EntityManager entityManager;
     @Autowired
     private DreamBoardRepository dreamBoardRepository;
     @Autowired
@@ -45,25 +47,26 @@ public class DreamBoardService {
 
     // 저장하기
     @Transactional
-    public boolean saveDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
-        boolean result = false;
-        File file2 = new File(uploadPath);
-        if(!file2.exists()){
-            file2.mkdirs();
-        }
-        boolean isFirstFile = true;
-        
-        if(files != null && files.size() > 0){ // 사진이 있는 경우
-            try {
+    public Optional<DreamBoardEntity> saveDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
+        try {
+            File file2 = new File(uploadPath);
+            if(!file2.exists()){
+                file2.mkdirs();
+            }
+
+            boolean isFirstFile = true;
+            if(files != null && files.size() > 0){ // 사진이 있는 경우
                 for(MultipartFile file : files) { // 사진을 조회하며 저장
                     if(file != null && file.getSize() > 0){
                         String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        System.out.println(saveFileName);
                         File saveFile = new File(uploadPath, saveFileName);
                         FileCopyUtils.copy(file.getBytes(), saveFile);
                         
                         if(isFirstFile){
                             entity.setThumbnail(saveFileName); // 썸네일 넣어주고
                             dreamBoardRepository.save(entity); // 저장
+                            // System.out.println(entity); // id 자동으로 넣어줫냐?
                             isFirstFile = false;
                         }
                         DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
@@ -73,12 +76,15 @@ public class DreamBoardService {
                         dreamBoardFileRepository.save(fileEntity);
                     }
                 }
-                result = true;
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else { // 사진이 없으면!
+                return Optional.empty();
             }
-        } // 사진이 없으면 false
-        return result;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+        entityManager.clear(); // 영속성 컨텍스트 지우기
+        return dreamBoardRepository.findById(entity.getId());
     }
 
     // 수정하기
