@@ -26,8 +26,8 @@ import com.example.kakao.domain.dreamboard.service.DreamBoardCategoryService;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
 import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.domain.user.service.UserService;
-import com.example.kakao.global.RsData.RsData;
 import com.example.kakao.global.dto.request.ScrollRequest;
+import com.example.kakao.global.dto.response.RsData;
 import com.example.kakao.global.jwt.util.JWTUtil;
 
 import io.swagger.v3.oas.annotations.Operation;

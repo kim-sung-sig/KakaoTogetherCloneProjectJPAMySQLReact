@@ -1,4 +1,4 @@
-package com.example.kakao.global.RsData;
+package com.example.kakao.global.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 

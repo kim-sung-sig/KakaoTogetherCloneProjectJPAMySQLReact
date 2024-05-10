@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.kakao.domain.dreamboard.service.DreamBoardLikeService;
-import com.example.kakao.global.RsData.RsData;
+import com.example.kakao.global.dto.response.RsData;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;

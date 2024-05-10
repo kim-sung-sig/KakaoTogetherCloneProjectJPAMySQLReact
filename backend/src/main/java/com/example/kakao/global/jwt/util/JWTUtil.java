@@ -9,33 +9,22 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.example.kakao.domain.user.entity.UserEntity;
+import com.example.kakao.global.jwt.dto.JWTDto;
+
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 
 @Component
 public class JWTUtil {
 
-    @Value("${custom.jwt.secretKey}")
-    private String originSecretKey;
-
     private SecretKey secretKey;
 
-    private SecretKey _getSecretKey(){
-        return new SecretKeySpec(originSecretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
-    }
+    private final long ACCESS_TOKEN_EXPRIE_TIME = 1L * 1000 * 60 * 15; // 15m
+    private final long REFRESH_TOKEN_EXPIRE_TIME = 1L * 1000 * 60 * 60 * 24 * 15;// 15d
 
-    public SecretKey getSecretKey(){
-        if(secretKey == null) secretKey = _getSecretKey();
-        return secretKey;
-    }
-
-    public boolean validateToken(String token) {
-        try{
-            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    public JWTUtil (@Value("${custom.jwt.secretKey}") String originSecretKey){
+        this.secretKey = new SecretKeySpec(originSecretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
 
     /**
@@ -46,16 +35,32 @@ public class JWTUtil {
      * @param expiredMs // 만료일
      * @return
      */
-    public String createJwt(String category, Long id, String username, String role, Long expiredMs) {
-        return Jwts.builder()
-            .claim("category", category) // accessToken OR refreshToken
-            .claim("id", id)
-            .claim("username", username)
-            .claim("role", role)
-            .issuedAt(new Date(System.currentTimeMillis())) // 생성시각
-            .expiration(new Date(System.currentTimeMillis() + expiredMs)) // 만료시각
-            .signWith(getSecretKey())
-            .compact();
+    public JWTDto createJwt(UserEntity userEntity) {
+        String accessToken = Jwts.builder()
+                .claim("category", "access")
+                .claim("id", userEntity.getId())
+                .claim("role", userEntity.getRole())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPRIE_TIME))
+                .signWith(secretKey)
+                .compact();
+        
+        String refreshToken = Jwts.builder()
+                .claim("category", "refresh")
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRE_TIME))
+                .signWith(secretKey)
+                .compact();
+        return new JWTDto(accessToken, refreshToken);
+    }
+
+    public boolean validateToken(String token) {
+        try{
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**
@@ -86,5 +91,7 @@ public class JWTUtil {
     public String getCategory(String token){
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
+
+    
     
 }

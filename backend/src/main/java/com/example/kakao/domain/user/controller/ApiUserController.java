@@ -1,11 +1,16 @@
 package com.example.kakao.domain.user.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.domain.user.service.UserService;
+import com.example.kakao.global.dto.response.RsData;
 import com.example.kakao.global.jwt.util.JWTUtil;
 
 @RestController
@@ -18,9 +23,20 @@ public class ApiUserController {
     @Autowired
     private JWTUtil jwtUtil;
 
-    //임시 토큰 발급소
-    @GetMapping("/token")
-    public String getToken(){
-        return jwtUtil.createJwt("accessToken", 1L, "test", "ROLE_USER", 1000 * 60 * 15L);
+    @GetMapping("")
+    public RsData< List<UserEntity> > getUserList(){
+        return RsData.of(null, null);
+    }
+
+    // 회원가입 주소
+    @PostMapping("")
+    public RsData< UserEntity > singUp(){
+        return null;
+    }
+
+    // 로그인 주소 (리프레쉬 토큰도 없는 경우 로그인 주소?)
+    @PostMapping("/login")
+    public RsData< UserEntity > login(){
+        return null;
     }
 }

@@ -29,6 +29,7 @@ public class ReissueController {
      * @param response
      * @return
      */
+    /*
     @PostMapping("/reissue")
     @ResponseBody
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
@@ -75,5 +76,5 @@ public class ReissueController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    
+     */
 }

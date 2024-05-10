@@ -1,8 +1,10 @@
 package com.example.kakao.global.initdata;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardCategoryRepository;
@@ -13,13 +15,22 @@ import com.example.kakao.domain.user.repository.UserRepository;
 @Configuration
 public class InitData {
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Bean
     CommandLineRunner init(DreamBoardCategoryRepository categoryRepository, UserRepository userRepository, DreamBoardService service) {
         return args -> {
             // 유저
             UserEntity user = UserEntity.builder()
-                                .username("test1").name("test1").email("test1").role("ROLE_USER").type("test")
-                                .build();
+                    .type("test")
+                    .username("test1")
+                    .password(bCryptPasswordEncoder.encode("1234"))
+                    .email("test1")
+                    .role("ROLE_USER")
+                    .name("test1")
+                    .build();
+            
             userRepository.save(user);
             System.out.println(userRepository.findById(1L).get());
             // 카테고리 

@@ -2,9 +2,10 @@ package com.example.kakao.global.config.security;
 
 import java.util.Collections;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,6 +17,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.kakao.domain.user.service.CustomOAuth2UserService;
 import com.example.kakao.global.jwt.JWTFilter;
+import com.example.kakao.global.jwt.LoginFilter;
+import com.example.kakao.global.jwt.util.JWTUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -23,15 +26,26 @@ import jakarta.servlet.http.HttpServletRequest;
 @EnableWebSecurity
 public class SecurityConfig {
     
-    @Autowired
-    private CustomOAuth2UserService CustomOAuth2UserService;
+    private final AuthenticationConfiguration authenticationConfiguration;
+    private final JWTUtil jwtUtil;
+    private final CustomOAuth2UserService customOAuth2UserService;
+	private final CustomSuccessHandler customSuccessHandler;
     
-    @Autowired
-    private CustomSuccessHandler customSuccessHandler;
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, CustomOAuth2UserService customOAuth2UserService, CustomSuccessHandler customSuccessHandler){
+        this.authenticationConfiguration = authenticationConfiguration;
+        this.jwtUtil = jwtUtil;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customSuccessHandler = customSuccessHandler;
+    }
 
     @Bean
     BCryptPasswordEncoder bCryptPasswordEncoder(){
         return new BCryptPasswordEncoder();
+    }
+    
+    @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
+    	return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -43,10 +57,11 @@ public class SecurityConfig {
 
             // 로그인 필터
             .addFilterBefore(new JWTFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class)
             // oauth
             .oauth2Login((oauth2) -> {
                 oauth2.userInfoEndpoint((userInfoEndpointConfig) -> {
-                    userInfoEndpointConfig.userService(CustomOAuth2UserService);
+                    userInfoEndpointConfig.userService(customOAuth2UserService);
                 })
                 .successHandler(customSuccessHandler)// 성공핸들러
                 .failureHandler(null); // 실패핸들러
@@ -56,6 +71,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**").permitAll()
+                .requestMatchers("/login", "/join").permitAll()
                 .requestMatchers("/").permitAll()
                 // 토큰 재발급
                 .requestMatchers("/reissue").permitAll()
