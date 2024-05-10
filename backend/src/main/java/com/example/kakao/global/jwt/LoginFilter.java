@@ -25,8 +25,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 	
     // 슈바 왜 Autowired 이걸로 안되지?
-    private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
     public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil){
         this.authenticationManager = authenticationManager;
@@ -73,7 +73,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private Cookie createCookie(String key, String value) {
 
         Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(60*60*24); // 24시간
+        cookie.setMaxAge(60*60*24*15); // 15일
         //cookie.setSecure(true); // https 에서만
         cookie.setPath("/");
         cookie.setHttpOnly(true); // 자바스크립트로 제어불가

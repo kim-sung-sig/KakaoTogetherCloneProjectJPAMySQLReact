@@ -18,9 +18,9 @@ public class ApiSecurityConfig {
             .authorizeHttpRequests((auth) -> {
                 auth
                     // 게시글
-                    .requestMatchers("/api/*/dreamBoards").permitAll()
-                    .requestMatchers("/api/*/dreamBoards/**").permitAll()
-                    .requestMatchers("/api/*/users/**").permitAll()
+                    .requestMatchers("/api/*/**").permitAll()
+                    //.requestMatchers("/api/*/dreamBoards/**").permitAll()
+                    //.requestMatchers("/api/*/users/**").permitAll()
                     // .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards").permitAll()
                     // .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards/**").permitAll()
                     // .requestMatchers(HttpMethod.POST, "/api/*/dreamBoards/**").hasAnyRole("ADMIN", "USER")

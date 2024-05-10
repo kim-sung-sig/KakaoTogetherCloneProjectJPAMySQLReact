@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.global.jwt.dto.JWTDto;
+import com.example.kakao.global.jwt.entity.RefreshToken;
+import com.example.kakao.global.jwt.repository.RefreshTokenRepository;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -18,13 +20,15 @@ import io.jsonwebtoken.Jwts;
 @Component
 public class JWTUtil {
 
-    private SecretKey secretKey;
+    private final SecretKey secretKey;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private final long ACCESS_TOKEN_EXPRIE_TIME = 1L * 1000 * 60 * 15; // 15m
     private final long REFRESH_TOKEN_EXPIRE_TIME = 1L * 1000 * 60 * 60 * 24 * 15;// 15d
 
-    public JWTUtil (@Value("${custom.jwt.secretKey}") String originSecretKey){
+    public JWTUtil (@Value("${custom.jwt.secretKey}") String originSecretKey, RefreshTokenRepository refreshTokenRepository){
         this.secretKey = new SecretKeySpec(originSecretKey.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     /**
@@ -51,6 +55,9 @@ public class JWTUtil {
                 .expiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(secretKey)
                 .compact();
+        
+        RefreshToken refreshTokenEntity = new RefreshToken(userEntity.getId(), refreshToken);
+        refreshTokenRepository.save(refreshTokenEntity);
         return new JWTDto(accessToken, refreshToken);
     }
 
@@ -92,6 +99,4 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
 
-    
-    
 }

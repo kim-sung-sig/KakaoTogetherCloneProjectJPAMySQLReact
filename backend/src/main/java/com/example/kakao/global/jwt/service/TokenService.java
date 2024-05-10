@@ -22,6 +22,15 @@ public class TokenService {
     @Autowired
     private JWTUtil jwtUtil;
 
+    public boolean check(String refreshToken){
+        boolean result = false;
+        Optional<RefreshToken> dbRefreshToken = refreshTokenRepository.findByRefreshToken(refreshToken);
+        if(dbRefreshToken.isPresent()){
+            result = true;
+        }
+        return result;
+    }
+
     // 토큰 재발급 하기
     public JWTDto createNewAccessToken(String refreshToken){
 
@@ -48,10 +57,6 @@ public class TokenService {
         
         // 모든 검사 통과
         JWTDto jwtDto = jwtUtil.createJwt(userEntity.get());
-
-        RefreshToken refreshToken2 = refreshTokenEntity.get();
-        refreshToken2.update(jwtDto.getRefreshToken());
-        refreshTokenRepository.save(refreshToken2); // 리프레쉬 토큰 저장
 
         return jwtDto;
     }
