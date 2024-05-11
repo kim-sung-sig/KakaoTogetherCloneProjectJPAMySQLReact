@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DreamBoardWriteRequest {
+    
     private Long categoryFk;
     private String title;
     private String content;
@@ -23,4 +24,5 @@ public class DreamBoardWriteRequest {
     private LocalDateTime startDate; // 문자로 받고 LDT로 바꾸자
     @DateTimeFormat(pattern = "yyyy-MM-dd HH")
     private LocalDateTime endDate; // 문자로 받고 LDT로 바꾸자
+
 }

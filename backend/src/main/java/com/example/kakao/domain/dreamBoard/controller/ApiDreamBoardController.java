@@ -28,7 +28,7 @@ import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.domain.user.service.UserService;
 import com.example.kakao.global.dto.request.ScrollRequest;
 import com.example.kakao.global.dto.response.RsData;
-import com.example.kakao.global.jwt.util.JWTUtil;
+import com.example.kakao.global.security.jwt.util.JWTUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -81,42 +81,41 @@ public class ApiDreamBoardController {
     @PostMapping(value = "", consumes = "multipart/form-data; charset=UTF-8")
     @Transactional
     public RsData< DreamBoardResponse > insertDreamBoard(
-        @RequestHeader(name = "accessToken", required = false) String accessToken,
+        @RequestHeader(name = "Authorization") String authorization,
         @ModelAttribute DreamBoardWriteRequest writeRequest,
         @RequestParam(name = "file", required = false) List<MultipartFile> files,
         HttpServletRequest request
     ) {
-        log.info("게시글 저장 실행 token => {}, dto => {}", accessToken, writeRequest);
-        if (accessToken == null) {
-            return RsData.of("F-5", "header에 jwt토큰을 담아주세요.");
-        }
-        if (!jwtUtil.validateToken(accessToken)){
-            return RsData.of("F-6", "토큰만료");
-        } // 토큰 검증 통과
+        log.info("게시글 저장 실행");
 
+        String accessToken = authorization.split(" ")[1]; // accessToken 추출
         Long userId = jwtUtil.getId(accessToken);
-        Optional<UserEntity> userEntity = userService.findById(userId);
-        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryService.findById(writeRequest.getCategoryFk());
-        if(!userEntity.isPresent() || !categoryEntity.isPresent()){
-            return RsData.of("F-7", "유효한 요청이 아닙니다.");
-        } // 토큰 정보 통과
 
+        Optional<UserEntity> userEntity = userService.findById(userId);
+        if(!userEntity.isPresent()){
+            log.info("탈퇴한 회원이던거 이상한 회원이라 반례");
+            return RsData.of("F-7", "유효한 요청이 아닙니다.");
+        }
+        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryService.findById(writeRequest.getCategoryFk());
+        if(!categoryEntity.isPresent()){
+            log.info("이상한카테고리 번호 넘겨서 반례");
+            return RsData.of("F-7", "유효한 요청이 아닙니다.");
+        }
+        // 토큰 정보 통과
+        
+        log.info("토큰 검증 통과 저장 실행 => request : {}", writeRequest);
         DreamBoardEntity entity = DreamBoardEntity.builder()
-                                    .user(userEntity.get())
-                                    .category(categoryEntity.get())
-                                    .title(writeRequest.getTitle()).content(writeRequest.getContent())
-                                    .tag1(writeRequest.getTag1()).tag2(writeRequest.getTag2()).tag3(writeRequest.getTag3())
-                                    .targetPrice(writeRequest.getTargetPrice())
-                                    .startDate(writeRequest.getStartDate()).endDate(writeRequest.getEndDate())
-                                    .ip(request.getRemoteAddr()).build();
+                .user(userEntity.get())
+                .category(categoryEntity.get())
+                .title(writeRequest.getTitle()).content(writeRequest.getContent())
+                .tag1(writeRequest.getTag1()).tag2(writeRequest.getTag2()).tag3(writeRequest.getTag3())
+                .targetPrice(writeRequest.getTargetPrice())
+                .startDate(writeRequest.getStartDate()).endDate(writeRequest.getEndDate())
+                .ip(request.getRemoteAddr()).build();
         
         String uploadPath = request.getServletContext().getRealPath("/upload/");
         
-        return boardService.saveDreamBoard(entity, files, uploadPath).map(en -> 
-            RsData.of("S-2", "저장성공", new DreamBoardResponse(en))
-        ).orElseGet(() -> 
-            RsData.of("F-2", "저장실패")
-        );
+        return boardService.saveDreamBoard(entity, files, uploadPath);
     }
 
     /*

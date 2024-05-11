@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.kakao.domain.user.entity.UserEntity;
 import com.example.kakao.domain.user.service.UserService;
 import com.example.kakao.global.dto.response.RsData;
-import com.example.kakao.global.jwt.util.JWTUtil;
+import com.example.kakao.global.security.jwt.util.JWTUtil;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -34,9 +34,4 @@ public class ApiUserController {
         return null;
     }
 
-    // 로그인 주소 (리프레쉬 토큰도 없는 경우 로그인 주소?)
-    @PostMapping("/login")
-    public RsData< UserEntity > login(){
-        return null;
-    }
 }

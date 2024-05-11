@@ -14,10 +14,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardFileEntity;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardFileRepository;
 import com.example.kakao.domain.dreamboard.repository.DreamBoardRepository;
+import com.example.kakao.global.dto.response.RsData;
 
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -47,7 +49,7 @@ public class DreamBoardService {
 
     // 저장하기
     @Transactional
-    public Optional<DreamBoardEntity> saveDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
+    public RsData< DreamBoardResponse > saveDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
         try {
             File file2 = new File(uploadPath);
             if(!file2.exists()){
@@ -77,14 +79,18 @@ public class DreamBoardService {
                     }
                 }
             } else { // 사진이 없으면!
-                return Optional.empty();
+                return RsData.of("F-", "사진없어서 반례");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return Optional.empty();
+            return RsData.of("F-", "사진 저장중 에러발생");
         }
         entityManager.clear(); // 영속성 컨텍스트 지우기
-        return dreamBoardRepository.findById(entity.getId());
+        return dreamBoardRepository.findById(entity.getId()).map(en -> 
+            RsData.of("S-2", "게시글 저장 성공", new DreamBoardResponse(en))
+        ).orElseGet(() ->
+            RsData.of("F-2", "게시글 저장 실패")
+        );
     }
 
     // 수정하기
