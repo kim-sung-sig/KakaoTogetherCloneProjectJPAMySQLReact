@@ -50,7 +50,6 @@ public class ApiDreamBoardController {
     @Autowired
     private DreamBoardCategoryService dreamBoardCategoryService;
 
-
     @Operation(summary = "게시글 다건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
     @GetMapping(value = "")
     public RsData< List<DreamBoardResponse> > getBoardList(@ModelAttribute ScrollRequest sc){

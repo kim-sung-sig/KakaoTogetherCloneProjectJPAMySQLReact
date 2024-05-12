@@ -19,8 +19,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import com.example.kakao.global.security.identity.oauth.CustomOAuth2UserService;
 import com.example.kakao.global.security.jwt.util.JWTUtil;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -50,6 +48,21 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception{
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    CorsConfigurationSource corsConfigurationSource() {
+        return request -> {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000")); // 허용할 origin
+            configuration.setAllowedHeaders(Collections.singletonList("*"));
+            configuration.setAllowedMethods(Collections.singletonList("*"));
+            configuration.setMaxAge(3600L);
+            configuration.setAllowCredentials(true);
+
+            configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+            configuration.setExposedHeaders(Collections.singletonList("Authorization"));
+            return configuration;
+        };
     }
 
     @Bean
@@ -85,29 +98,14 @@ public class SecurityConfig {
 
                 // api
                 .requestMatchers(HttpMethod.POST, "/api/*/token").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoard").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoard/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards").permitAll() // 다건조회
+                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards/**").permitAll() // 단건조회
                 .anyRequest().authenticated();
-            });
-
-        http.cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
-            @Override
-            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
-                CorsConfiguration configuration = new CorsConfiguration();
-
-                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-                configuration.setAllowedMethods(Collections.singletonList("*"));
-                configuration.setAllowCredentials(true);
-                configuration.setAllowedHeaders(Collections.singletonList("*"));
-                configuration.setMaxAge(3600L);
-
-                configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-
-                return configuration;
             }
-        }));
+        );
+
+        // cors
+        http.cors(corsCustomizer -> corsCustomizer.configurationSource(corsConfigurationSource()));
 
         // 세션 설정 : STATELESS
         http.sessionManagement((session) -> {
