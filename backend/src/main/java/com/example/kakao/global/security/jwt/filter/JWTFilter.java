@@ -1,4 +1,4 @@
-package com.example.kakao.global.security.config;
+package com.example.kakao.global.security.jwt.filter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -35,6 +35,7 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
         HttpServletRequest request, HttpServletResponse response, FilterChain filterChain
     ) throws ServletException, IOException {
+        System.out.println("Request URL: " + request.getRequestURL());
         System.out.println("검증 실행");
         String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION); // accessToken
         System.out.println("authorizationHeader => " + authorizationHeader);

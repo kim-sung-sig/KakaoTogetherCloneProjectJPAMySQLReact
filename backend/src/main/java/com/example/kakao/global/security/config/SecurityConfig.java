@@ -17,6 +17,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.example.kakao.global.security.identity.oauth.CustomOAuth2UserService;
+import com.example.kakao.global.security.jwt.filter.JWTFilter;
 import com.example.kakao.global.security.jwt.util.JWTUtil;
 
 @Configuration
@@ -93,6 +94,7 @@ public class SecurityConfig {
                 .requestMatchers("/").permitAll()
                 .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**").permitAll()
                 .requestMatchers("/login", "/join").permitAll()
+                .requestMatchers("/favicon.ico").permitAll()
                 // 스웨거
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
