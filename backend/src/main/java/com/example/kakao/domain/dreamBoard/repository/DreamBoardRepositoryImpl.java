@@ -18,14 +18,14 @@ public class DreamBoardRepositoryImpl implements DreamBoardRepositoryCustom {
     private JPAQueryFactory jpaQueryFactory;
 
     @Override
-    public Page<DreamBoardEntity> search(Long lastItemid, Long categoryId, String search, Pageable pageable) {
+    public Page<DreamBoardEntity> findAllByCondition(Long lastId, Long categoryId, String search, Pageable pageable) {
         QDreamBoardEntity dreamBoardEntity = QDreamBoardEntity.dreamBoardEntity;
 
         JPAQuery<DreamBoardEntity> jpaQuery = jpaQueryFactory
             .select(dreamBoardEntity)
             .from(dreamBoardEntity)
             .where(
-                lastItemid != null ? dreamBoardEntity.id.lt(lastItemid) : null,
+                lastId != null ? dreamBoardEntity.id.lt(lastId) : null,
                 search != null && !search.isEmpty() ?
                     dreamBoardEntity.title.contains(search)
                     .or(dreamBoardEntity.tag1.contains(search))
@@ -43,7 +43,7 @@ public class DreamBoardRepositoryImpl implements DreamBoardRepositoryCustom {
             .select(dreamBoardEntity.count())
             .from(dreamBoardEntity)
             .where(
-                lastItemid != null ? dreamBoardEntity.id.lt(lastItemid) : null,
+                lastId != null ? dreamBoardEntity.id.lt(lastId) : null,
                 search != null && !search.isEmpty() ?
                     dreamBoardEntity.title.contains(search)
                     .or(dreamBoardEntity.tag1.contains(search))

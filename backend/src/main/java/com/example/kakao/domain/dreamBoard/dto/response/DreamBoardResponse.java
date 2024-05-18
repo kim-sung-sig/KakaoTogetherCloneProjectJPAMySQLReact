@@ -30,7 +30,7 @@ public class DreamBoardResponse {
         this.likeCount = e.getLikeCount();
         this.commentCount = e.getCommentCount();
         this.donationCount = e.getDonationCount();
-        this.files = DreamBoardFileResponse.convertToFileResponses(e.getFileEntities());
+        this.fileList = DreamBoardFileResponse.convertToFileResponses(e.getFileEntities());
     }
 
 
@@ -67,7 +67,7 @@ public class DreamBoardResponse {
     private int donationCount;
 
     // 파일
-    private List<DreamBoardFileResponse> files;
+    private List<DreamBoardFileResponse> fileList;
 
     private boolean isOwner = false;
 }

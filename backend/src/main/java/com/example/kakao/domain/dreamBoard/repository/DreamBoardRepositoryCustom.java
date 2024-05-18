@@ -8,6 +8,6 @@ import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 
 public interface DreamBoardRepositoryCustom {
 
-    Page<DreamBoardEntity> search(Long id, Long categoryId, String search, Pageable pageable);
+    Page<DreamBoardEntity> findAllByCondition(Long lastId, Long categoryId, String search, Pageable pageable);
     
 }

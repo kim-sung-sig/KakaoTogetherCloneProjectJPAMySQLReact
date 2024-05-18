@@ -1,8 +1,10 @@
 package com.example.kakao.domain.dreamboard.dto.request;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DreamBoardWriteRequest {
+public class DreamBoardUploadRequest {
     
     private Long categoryFk;
     private String title;
@@ -24,5 +26,9 @@ public class DreamBoardWriteRequest {
     private LocalDateTime startDate; // 문자로 받고 LDT로 바꾸자
     @DateTimeFormat(pattern = "yyyy-MM-dd HH")
     private LocalDateTime endDate; // 문자로 받고 LDT로 바꾸자
+
+    private List<MultipartFile> file;
+
+    private String ip;
 
 }
