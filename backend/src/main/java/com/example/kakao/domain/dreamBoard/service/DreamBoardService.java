@@ -28,6 +28,7 @@ import com.example.kakao.domain.user.repository.UserRepository;
 import com.example.kakao.global.exception.EntityNotFoundException;
 import com.example.kakao.global.security.jwt.util.JWTUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,7 +92,7 @@ public class DreamBoardService {
 
     // 저장하기
     @Transactional
-    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest
+    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest, HttpServletRequest req
     ) throws IOException, EntityNotFoundException{
         // 검증 시작
         Long userId = jwtUtil.getId(accessToken);
@@ -119,8 +120,10 @@ public class DreamBoardService {
         // file 객체
         List<MultipartFile> files = uploadRequest.getFile();
 
+        String uploadPath = req.getServletContext().getRealPath(fileDirPath);
+        log.info("uploadPath => {}", uploadPath);
         // 저장 실행!
-        File uploadDir = new File(fileDirPath);
+        File uploadDir = new File(uploadPath);
         if(!uploadDir.exists()){
             uploadDir.mkdirs();
         }

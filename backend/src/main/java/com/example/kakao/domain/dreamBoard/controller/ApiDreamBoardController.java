@@ -84,13 +84,14 @@ public class ApiDreamBoardController {
     public ResponseEntity<?> insertDreamBoard(
         @RequestHeader(name = "Authorization") String authorization,
         @ModelAttribute DreamBoardUploadRequest uploadRequest,
-        HttpServletRequest request
+        HttpServletRequest req
     ) {
         log.info("게시글 저장 실행");
         Boolean result = false;
         String accessToken = authorization.split(" ")[1]; // accessToken 추출
+        uploadRequest.setIp(req.getRemoteAddr());
         try {
-            result = boardService.saveDreamBoard(accessToken, uploadRequest);
+            result = boardService.saveDreamBoard(accessToken, uploadRequest, req);
         } catch (IOException e) {
             return new ResponseEntity<>("IOException",HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (EntityNotFoundException e) {
