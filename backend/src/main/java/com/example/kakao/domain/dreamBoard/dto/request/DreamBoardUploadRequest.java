@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DreamBoardUploadRequest {
     
-    private Long categoryFk;
+    private Long categoryNum;
     private String title;
     private String content;
     private String tag1;

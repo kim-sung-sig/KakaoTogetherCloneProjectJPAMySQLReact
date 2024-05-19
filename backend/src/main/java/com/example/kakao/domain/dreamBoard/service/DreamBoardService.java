@@ -3,6 +3,7 @@ package com.example.kakao.domain.dreamboard.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUpdateRequest;
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUploadRequest;
 import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardCategoryEntity;
@@ -44,6 +46,7 @@ public class DreamBoardService {
     private final DreamBoardCategoryRepository dreamBoardCategoryRepository;
     private final DreamBoardFileRepository dreamBoardFileRepository;
 
+    // 주입
     public DreamBoardService(@Value("${custom.fileDirPath}") String fileDirPath,
                             JWTUtil jwtUtil,
                             UserRepository userRepository,
@@ -80,7 +83,10 @@ public class DreamBoardService {
                 .map(entity -> new DreamBoardResponse(entity))
                 .collect(Collectors.toList());
     }
-    // 1개 얻기
+
+    /**
+     * 게시글 하나 얻기
+     */
     public DreamBoardResponse findById(Long id) throws EntityNotFoundException {
         Optional<DreamBoardEntity> optional = dreamBoardRepository.findById(id);
         if(optional.isPresent()){
@@ -101,7 +107,7 @@ public class DreamBoardService {
             throw new EntityNotFoundException("탈퇴한 회원 Or 이상한 회원");
         }
 
-        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(uploadRequest.getCategoryFk());
+        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(uploadRequest.getCategoryNum());
         if(!categoryEntity.isPresent()){
             throw new EntityNotFoundException("카테고리번호 이상");
         }
@@ -111,7 +117,7 @@ public class DreamBoardService {
         // requestToEntity
         DreamBoardEntity boardEntity = DreamBoardEntity.builder()
                 .user(UserEntity.builder().id(userId).build())
-                .category(DreamBoardCategoryEntity.builder().id(uploadRequest.getCategoryFk()).build())
+                .category(DreamBoardCategoryEntity.builder().id(uploadRequest.getCategoryNum()).build())
                 .title(uploadRequest.getTitle()).content(uploadRequest.getContent())
                 .tag1(uploadRequest.getTag1()).tag2(uploadRequest.getTag1()).tag3(uploadRequest.getTag1())
                 .targetPrice(uploadRequest.getTargetPrice())
@@ -157,9 +163,95 @@ public class DreamBoardService {
 
     // 수정하기
     @Transactional
-    public boolean updateDreamBoard(DreamBoardEntity entity, List<MultipartFile> files, String uploadPath){
-        boolean result = false;
-        return result;
+    public boolean updateDreamBoard(String accessToken, DreamBoardUpdateRequest updateRequest, HttpServletRequest req
+    ) throws IOException, EntityNotFoundException{
+        // 검증 시작
+        Long userId = jwtUtil.getId(accessToken);
+        Optional<UserEntity> userEntity = userRepository.findById(userId);
+        if(!userEntity.isPresent()){
+            throw new EntityNotFoundException("탈퇴한 회원 Or 이상한 회원");
+        }
+        Optional<DreamBoardEntity> dbBoardEntity = dreamBoardRepository.findById(userId);
+        if(!dbBoardEntity.isPresent()){
+            throw new EntityNotFoundException("not id");
+        }
+        DreamBoardEntity dbBoard = dbBoardEntity.get();
+        if(!userId.equals(dbBoard.getUser().getId())){
+            throw new EntityNotFoundException("해당유저가 쓴글이 아님");
+        }
+        if(!updateRequest.getCategoryNum().equals(dbBoard.getCategory().getId())){
+            Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(updateRequest.getCategoryNum());
+            if(!categoryEntity.isPresent()){
+                throw new EntityNotFoundException("카테고리번호 이상");
+            }
+            dbBoard.setCategory(categoryEntity.get());
+        }
+
+        //TODO 넘어온값 널체크 Valid 사용해보자
+        DreamBoardEntity updateEntity = DreamBoardEntity.builder()
+                .id(updateRequest.getId())
+                .category(DreamBoardCategoryEntity.builder().id(updateRequest.getCategoryNum()).build())
+                .title(updateRequest.getTitle()).content(updateRequest.getContent())
+                .tag1(updateRequest.getTag1()).tag2(updateRequest.getTag2()).tag3(updateRequest.getTag3())
+                .targetPrice(updateRequest.getTargetPrice() <= dbBoard.getCurrentPrice() ? dbBoard.getCurrentPrice() : updateRequest.getTargetPrice()) // 목표 금액이 현재금액보다 낮을 수 없음
+                .endDate(updateRequest.getEndDate())
+                .ip(updateRequest.getIp())
+                .build();
+
+        String uploadPath = req.getServletContext().getRealPath(fileDirPath);
+        log.info("uploadPath => {}", uploadPath);
+        // 저장 실행!
+        File uploadDir = new File(uploadPath);
+        if(!uploadDir.exists()){
+            uploadDir.mkdirs();
+        }
+
+        List<Long> existingFileIds = updateRequest.getExistingfile();
+        List<DreamBoardFileEntity> currentFiles = dreamBoardFileRepository.findByBoardId(dbBoard.getId());
+
+        // Delete files that are not in the existingFile list
+        for (DreamBoardFileEntity fileEntity : currentFiles) {
+            if (!existingFileIds.contains(fileEntity.getId())) {
+                File fileToDelete = new File(uploadDir, fileEntity.getSaveFileName());
+                if (fileToDelete.exists()) {
+                    fileToDelete.delete();
+                }
+                dreamBoardFileRepository.delete(fileEntity);
+            }
+        }
+        // Save new files
+        if (updateRequest.getFile() != null && !updateRequest.getFile().isEmpty()) {
+            for (MultipartFile file : updateRequest.getFile()) {
+                if (file != null && !file.isEmpty()) {
+                    String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                    File saveFile = new File(uploadDir, saveFileName);
+                    file.transferTo(saveFile);
+
+                    DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
+                            .board(dbBoard)
+                            .saveFileName(saveFileName)
+                            .build();
+                    dreamBoardFileRepository.save(fileEntity);
+                }
+            }
+        }
+
+        // Update file order
+        Map<Long, Integer> fileOrder = updateRequest.getFileOrder();
+        if (fileOrder != null) {
+            for (Map.Entry<Long, Integer> entry : fileOrder.entrySet()) {
+                Optional<DreamBoardFileEntity> fileEntityOpt = dreamBoardFileRepository.findById(entry.getKey());
+                if (fileEntityOpt.isPresent()) {
+                    DreamBoardFileEntity fileEntity = fileEntityOpt.get();
+                    fileEntity.setOrder(entry.getValue());
+                    dreamBoardFileRepository.save(fileEntity);
+                }
+            }
+        }
+
+        dreamBoardRepository.save(dbBoard);
+
+        return true;
     }
 
 

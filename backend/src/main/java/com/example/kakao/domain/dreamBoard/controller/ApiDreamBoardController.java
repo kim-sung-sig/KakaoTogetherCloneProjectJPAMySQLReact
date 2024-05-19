@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUpdateRequest;
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUploadRequest;
@@ -108,21 +106,20 @@ public class ApiDreamBoardController {
      */
     @Operation(summary = "게시글 수정", description = "지정된 id의 게시글을 수정합니다.")
     @PutMapping("/{id}")
-    public RsData< DreamBoardResponse > updateDreamBoard(
+    public ResponseEntity<?> updateDreamBoard(
         @RequestHeader(name = "Authorization") String authorization,
         @PathVariable(name = "id") Long id,
         @ModelAttribute DreamBoardUpdateRequest updateRequest,
-        @RequestParam(name = "file", required = false) List<MultipartFile> files,
         HttpServletRequest request
     ){
-        DreamBoardEntity entity = null;
-        boolean result = false; // boardService.saveDreamBoard(entity, files);
-        // boolean result = boardService.saveDreamBoard(entity, files);
-        if(result) {
-            return RsData.of("S-3", "게시글 수정 성공", new DreamBoardResponse(entity));
-        } else {
-            return RsData.of("F-3", "게시물 수정 실패");
-        }
+        log.info("게시글 수정 실행");
+        Boolean result = false;
+        String accessToken = authorization.split(" ")[1]; // accessToken 추출
+        updateRequest.setId(id);
+        updateRequest.setIp(request.getRemoteAddr());
+
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 
