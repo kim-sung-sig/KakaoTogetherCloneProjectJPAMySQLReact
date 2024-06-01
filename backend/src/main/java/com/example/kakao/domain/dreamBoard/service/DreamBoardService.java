@@ -216,16 +216,13 @@ public class DreamBoardService {
             DreamBoardEntity dbBoard = dreamBoardRepository.findById(boardId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not id"));
 
-            // 유저가 맞는지
-            UserEntity dbUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원 Or 이상한 회원"));
-
             // 카테고리
             DreamBoardCategoryEntity categoryEntity = dreamBoardCategoryRepository.findById(updateRequest.getCategoryNum())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"카테고리번호 이상"));
             
-
-            // 자신이 쓴 글이 맞는지
+            // 유저가 맞는지 + 자신이 쓴 글이 맞는지
+            userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원 Or 이상한 회원"));
             Optional.ofNullable(dbBoard)
                     .map(board -> board.getUser().getId())
                     .filter(id -> id.equals(userId)) // TODO 나중에 관리자는 가능하게?
@@ -258,21 +255,22 @@ public class DreamBoardService {
                 // 삭제된 사진이 있는지 확인 및 파일 처리
                 List<DreamBoardFileEntity> newFileEntities = new ArrayList<>();
                 List<Long> preFileEntityIds = dreamBoardFileRepository.findIdByBoardId(dbBoard.getId());
-                List<Long> newFileEntityIds = new ArrayList<>(fileOrderMap.keySet());
-                
-                // 교집합
-                List<Long> retainList = new ArrayList<>(preFileEntityIds);
-                retainList.retainAll(newFileEntityIds);
-                
-                List<Long> removeList = preFileEntityIds.retainAll(newFileEntityIds); // 차집합
+                String thumnail = null;
                 for (Long fileId : preFileEntityIds) {
                     if (!fileOrderMap.containsKey(fileId)) {
                         DreamBoardFileEntity deleteFileEntity = dreamBoardFileRepository.findById(fileId)
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제된 파일을 찾을 수 없습니다."));
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "왠지 몰겟네? 파일 삭제하려함"));
                         File deleteFile = new File(uploadDir, deleteFileEntity.getSaveFileName());
                         if (deleteFile.exists()) {
                             deleteFile.delete();
                         }
+                    } else {
+                        DreamBoardFileEntity saveFileEntity = dreamBoardFileRepository.findById(fileId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "음! 일단 이거는 발생안함"));
+                        Integer newOrder = fileOrderMap.get(fileId);
+                        if(newOrder.equals(1)) thumnail = saveFileEntity.getSaveFileName();
+                        saveFileEntity.setOrders(newOrder);
+                        newFileEntities.add(saveFileEntity);
                     }
                 }
 
@@ -284,6 +282,8 @@ public class DreamBoardService {
                     FileCopyUtils.copy(file.getBytes(), saveFile);
 
                     Integer order = fileOrderMap.get(count * -1L);
+                    if(order.equals(1)) thumnail = saveFileName;
+
                     DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
                             .board(dbBoard)
                             .saveFileName(saveFileName)
@@ -294,8 +294,9 @@ public class DreamBoardService {
                     count++;
                 }
 
-                // 새로운 파일 저장
-                dreamBoardFileRepository.saveAll(newFileEntities);
+                dbBoard.setThumbnail(thumnail); // 썸네일
+                dbBoard.getFileEntities().addAll(newFileEntities);
+                dreamBoardRepository.save(dbBoard);
 
             } catch (IOException e) {
                 throw new Exception("사진 저장중 에러발생");
