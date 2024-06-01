@@ -23,8 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class DreamBoardFileEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -34,5 +33,7 @@ public class DreamBoardFileEntity {
 
     @Column(name = "save_file_name", nullable = false)
     private String saveFileName;
+
+    private Integer orders;
 
 }

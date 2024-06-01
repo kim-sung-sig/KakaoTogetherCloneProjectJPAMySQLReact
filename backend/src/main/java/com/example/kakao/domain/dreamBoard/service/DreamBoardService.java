@@ -2,6 +2,7 @@ package com.example.kakao.domain.dreamboard.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,9 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUpdateRequest;
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUploadRequest;
@@ -62,7 +65,15 @@ public class DreamBoardService {
         this.dreamBoardFileRepository = dreamBoardFileRepository;
     }
 
-    // 리스트 얻기
+    /**
+     * 게시글 목록 얻기
+     * @param lastId
+     * @param size
+     * @param categoryId
+     * @param search
+     * @return
+     * @throws Exception
+     */
     public List<DreamBoardResponse> getEntitysWithPagination(Long lastId, int size, Long categoryId, String search) throws Exception{
         log.info("변수 에러 검사 시작");
         if((lastId != null && lastId < 0) || size < 0){
@@ -85,7 +96,10 @@ public class DreamBoardService {
     }
 
     /**
-     * 게시글 하나 얻기
+     * 게시글 하나 얻기(상세보기)
+     * @param id
+     * @return
+     * @throws EntityNotFoundException
      */
     public DreamBoardResponse findById(Long id) throws EntityNotFoundException {
         Optional<DreamBoardEntity> optional = dreamBoardRepository.findById(id);
@@ -96,161 +110,202 @@ public class DreamBoardService {
         }
     }
 
-    // 저장하기
+    /**
+     * 게시글 저장하기
+     * @param accessToken
+     * @param uploadRequest
+     * @param req
+     * @return
+     * @throws Exception
+     */
     @Transactional
-    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest, HttpServletRequest req
-    ) throws IOException, EntityNotFoundException{
-        // 검증 시작
-        Long userId = jwtUtil.getId(accessToken);
-        Optional<UserEntity> userEntity = userRepository.findById(userId);
-        if(!userEntity.isPresent()){
-            throw new EntityNotFoundException("탈퇴한 회원 Or 이상한 회원");
-        }
+    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest, HttpServletRequest req) throws Exception{
+        try {
+            // 검증 시작
+            Long userId = jwtUtil.getId(accessToken);
+            UserEntity dbUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원 Or 이상한 회원"));
 
-        Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(uploadRequest.getCategoryNum());
-        if(!categoryEntity.isPresent()){
-            throw new EntityNotFoundException("카테고리번호 이상");
-        }
-        // 일단 검증 완료
-        //TODO 널 검증 해야댐
-        
-        // requestToEntity
-        DreamBoardEntity boardEntity = DreamBoardEntity.builder()
-                .user(UserEntity.builder().id(userId).build())
-                .category(DreamBoardCategoryEntity.builder().id(uploadRequest.getCategoryNum()).build())
-                .title(uploadRequest.getTitle()).content(uploadRequest.getContent())
-                .tag1(uploadRequest.getTag1()).tag2(uploadRequest.getTag1()).tag3(uploadRequest.getTag1())
-                .targetPrice(uploadRequest.getTargetPrice())
-                .startDate(uploadRequest.getStartDate()).endDate(uploadRequest.getEndDate())
-                .ip(uploadRequest.getIp()).build();
-        // file 객체
-        List<MultipartFile> files = uploadRequest.getFile();
+            DreamBoardCategoryEntity dbCategory = dreamBoardCategoryRepository.findById(uploadRequest.getCategoryNum())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "카테고리번호 이상"));
 
-        String uploadPath = req.getServletContext().getRealPath(fileDirPath);
-        log.info("uploadPath => {}", uploadPath);
-        // 저장 실행!
-        File uploadDir = new File(uploadPath);
-        if(!uploadDir.exists()){
-            uploadDir.mkdirs();
-        }
-
-        boolean isFirstFile = true;
-        if(files != null && files.size() > 0){ // 사진이 있는 경우
-            for(MultipartFile file : files) { // 사진을 조회하며 저장
-                if(file != null && file.getSize() > 0){
-                    String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                    File saveFile = new File(uploadDir, saveFileName);
-                    FileCopyUtils.copy(file.getBytes(), saveFile);
-                    
-                    if(isFirstFile){
-                        boardEntity.setThumbnail(saveFileName); // 썸네일 넣어주고
-                        dreamBoardRepository.save(boardEntity); // 저장
-                        // System.out.println(entity); // id 자동으로 넣어줫냐?
-                        isFirstFile = false;
-                    }
-                    DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
-                            .board(boardEntity)
-                            .saveFileName(saveFileName).build();
-                    dreamBoardFileRepository.save(fileEntity);
-                }
+            if (uploadRequest.getStartDate().isAfter(uploadRequest.getEndDate())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "시작 날짜는 종료 날짜보다 앞서야 합니다.");
             }
-        } else { // 사진이 없으면!
-            //TODO 일단 이런 익셉션으로 던져보자..
-            throw new EntityNotFoundException("사진없어서");
+
+            List<MultipartFile> files = uploadRequest.getFile();
+            if (files == null || files.isEmpty() || files.size() > 5) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일은 최소 1개 이상, 최대 5개 이하이어야 합니다.");
+            } // 검증 끝
+
+            // 저장 시작
+            // Entity 생성
+            DreamBoardEntity board = DreamBoardEntity.builder()
+                    .user(dbUser)
+                    .category(dbCategory)
+                    .title(uploadRequest.getTitle())
+                    .content(uploadRequest.getContent())
+                    .tag1(uploadRequest.getTag1())
+                    .tag2(uploadRequest.getTag2())
+                    .tag3(uploadRequest.getTag3())
+                    .targetPrice(uploadRequest.getTargetPrice())
+                    .startDate(uploadRequest.getStartDate())
+                    .endDate(uploadRequest.getEndDate())
+                    .ip(req.getRemoteAddr())
+                    .fileEntities(new ArrayList<>()) // 사진저장후 addAll()
+                    .build();
+
+            // 사진 저장 준비
+            String uploadPath = req.getServletContext().getRealPath(fileDirPath);
+            log.info("uploadPath => {}", uploadPath);
+
+            try {
+                File uploadDir = new File(uploadPath);
+                if (!uploadDir.exists()) {
+                    uploadDir.mkdirs();
+                }
+
+                List<DreamBoardFileEntity> fileEntities = new ArrayList<>();
+                int count = 1;
+                for (MultipartFile file : files) {
+                    if (file != null && file.getSize() > 0) {
+                        String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        File saveFile = new File(uploadDir, saveFileName);
+                        FileCopyUtils.copy(file.getBytes(), saveFile);
+
+                        DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
+                                .board(board)
+                                .saveFileName(saveFileName)
+                                .orders(count++)
+                                .build();
+
+                        fileEntities.add(fileEntity);
+                    }
+                }
+
+                if (!fileEntities.isEmpty()) {
+                    board.setThumbnail(fileEntities.get(0).getSaveFileName()); // 썸네일
+                    board.getFileEntities().addAll(fileEntities);
+                    dreamBoardRepository.save(board);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효한 파일이 없습니다.");
+                }
+
+            } catch (IOException e) {
+                log.debug("사진 저장중 에러가 발생했습니다.", e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "사진 저장중 에러");
+            }
+
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while saving dream board", e);
+            throw new Exception();
         }
+
         return true;
     }
 
-    // 수정하기
     @Transactional
-    public boolean updateDreamBoard(String accessToken, DreamBoardUpdateRequest updateRequest, HttpServletRequest req
-    ) throws IOException, EntityNotFoundException{
-        // 검증 시작
-        Long userId = jwtUtil.getId(accessToken);
-        Optional<UserEntity> userEntity = userRepository.findById(userId);
-        if(!userEntity.isPresent()){
-            throw new EntityNotFoundException("탈퇴한 회원 Or 이상한 회원");
-        }
-        Optional<DreamBoardEntity> dbBoardEntity = dreamBoardRepository.findById(userId);
-        if(!dbBoardEntity.isPresent()){
-            throw new EntityNotFoundException("not id");
-        }
-        DreamBoardEntity dbBoard = dbBoardEntity.get();
-        if(!userId.equals(dbBoard.getUser().getId())){
-            throw new EntityNotFoundException("해당유저가 쓴글이 아님");
-        }
-        if(!updateRequest.getCategoryNum().equals(dbBoard.getCategory().getId())){
-            Optional<DreamBoardCategoryEntity> categoryEntity = dreamBoardCategoryRepository.findById(updateRequest.getCategoryNum());
-            if(!categoryEntity.isPresent()){
-                throw new EntityNotFoundException("카테고리번호 이상");
-            }
-            dbBoard.setCategory(categoryEntity.get());
-        }
+    public boolean updateDreamBoard(String accessToken, Long boardId, DreamBoardUpdateRequest updateRequest, HttpServletRequest req) throws Exception {
+        try {
+            // 검증 시작
+            Long userId = jwtUtil.getId(accessToken);
 
-        //TODO 넘어온값 널체크 Valid 사용해보자
-        DreamBoardEntity updateEntity = DreamBoardEntity.builder()
-                .id(updateRequest.getId())
-                .category(DreamBoardCategoryEntity.builder().id(updateRequest.getCategoryNum()).build())
-                .title(updateRequest.getTitle()).content(updateRequest.getContent())
-                .tag1(updateRequest.getTag1()).tag2(updateRequest.getTag2()).tag3(updateRequest.getTag3())
-                .targetPrice(updateRequest.getTargetPrice() <= dbBoard.getCurrentPrice() ? dbBoard.getCurrentPrice() : updateRequest.getTargetPrice()) // 목표 금액이 현재금액보다 낮을 수 없음
-                .endDate(updateRequest.getEndDate())
-                .ip(updateRequest.getIp())
-                .build();
+            // 존재하는 게시글
+            DreamBoardEntity dbBoard = dreamBoardRepository.findById(boardId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not id"));
 
-        String uploadPath = req.getServletContext().getRealPath(fileDirPath);
-        log.info("uploadPath => {}", uploadPath);
-        // 저장 실행!
-        File uploadDir = new File(uploadPath);
-        if(!uploadDir.exists()){
-            uploadDir.mkdirs();
-        }
+            // 유저가 맞는지
+            UserEntity dbUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원 Or 이상한 회원"));
 
-        List<Long> existingFileIds = updateRequest.getExistingfile();
-        List<DreamBoardFileEntity> currentFiles = dreamBoardFileRepository.findByBoardId(dbBoard.getId());
+            // 카테고리
+            DreamBoardCategoryEntity categoryEntity = dreamBoardCategoryRepository.findById(updateRequest.getCategoryNum())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"카테고리번호 이상"));
+            
 
-        // Delete files that are not in the existingFile list
-        for (DreamBoardFileEntity fileEntity : currentFiles) {
-            if (!existingFileIds.contains(fileEntity.getId())) {
-                File fileToDelete = new File(uploadDir, fileEntity.getSaveFileName());
-                if (fileToDelete.exists()) {
-                    fileToDelete.delete();
+            // 자신이 쓴 글이 맞는지
+            Optional.ofNullable(dbBoard)
+                    .map(board -> board.getUser().getId())
+                    .filter(id -> id.equals(userId)) // TODO 나중에 관리자는 가능하게?
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "해당유저가 쓴글이 아님"));
+
+            // 새로운 값을 넣어주자
+            dbBoard.setCategory(categoryEntity);
+            dbBoard.setTitle(updateRequest.getTitle());
+            dbBoard.setContent(updateRequest.getContent());
+            dbBoard.setTag1(updateRequest.getTag1());
+            dbBoard.setTag2(updateRequest.getTag2());
+            dbBoard.setTag3(updateRequest.getTag3());
+            dbBoard.setTargetPrice(updateRequest.getTargetPrice() <= dbBoard.getCurrentPrice() ? dbBoard.getCurrentPrice() : updateRequest.getTargetPrice());
+            dbBoard.setEndDate(updateRequest.getEndDate());
+            dbBoard.setIp(req.getRemoteAddr());
+
+            // 저장 실행!
+            String uploadPath = req.getServletContext().getRealPath(fileDirPath);
+            log.info("uploadPath => {}", uploadPath);
+
+            Map<Long, Integer> fileOrderMap = updateRequest.getFileOrderMap();
+            List<MultipartFile> files = updateRequest.getFile(); // 새로 추가된 사진들
+            try {
+                // 저장 실행!
+                File uploadDir = new File(uploadPath);
+                if(!uploadDir.exists()){
+                    uploadDir.mkdirs();
                 }
-                dreamBoardFileRepository.delete(fileEntity);
-            }
-        }
-        // Save new files
-        if (updateRequest.getFile() != null && !updateRequest.getFile().isEmpty()) {
-            for (MultipartFile file : updateRequest.getFile()) {
-                if (file != null && !file.isEmpty()) {
+
+                // 삭제된 사진이 있는지 확인 및 파일 처리
+                List<DreamBoardFileEntity> newFileEntities = new ArrayList<>();
+                List<Long> preFileEntityIds = dreamBoardFileRepository.findIdByBoardId(dbBoard.getId());
+                List<Long> newFileEntityIds = new ArrayList<>(fileOrderMap.keySet());
+                
+                // 교집합
+                List<Long> retainList = new ArrayList<>(preFileEntityIds);
+                retainList.retainAll(newFileEntityIds);
+                
+                List<Long> removeList = preFileEntityIds.retainAll(newFileEntityIds); // 차집합
+                for (Long fileId : preFileEntityIds) {
+                    if (!fileOrderMap.containsKey(fileId)) {
+                        DreamBoardFileEntity deleteFileEntity = dreamBoardFileRepository.findById(fileId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "삭제된 파일을 찾을 수 없습니다."));
+                        File deleteFile = new File(uploadDir, deleteFileEntity.getSaveFileName());
+                        if (deleteFile.exists()) {
+                            deleteFile.delete();
+                        }
+                    }
+                }
+
+                // 새로운 파일 저장 및 기존 파일 순서 변경
+                long count = 1;
+                for (MultipartFile file : files) {
                     String saveFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
                     File saveFile = new File(uploadDir, saveFileName);
-                    file.transferTo(saveFile);
+                    FileCopyUtils.copy(file.getBytes(), saveFile);
 
+                    Integer order = fileOrderMap.get(count * -1L);
                     DreamBoardFileEntity fileEntity = DreamBoardFileEntity.builder()
                             .board(dbBoard)
                             .saveFileName(saveFileName)
+                            .orders(order)
                             .build();
-                    dreamBoardFileRepository.save(fileEntity);
+
+                    newFileEntities.add(fileEntity);
+                    count++;
                 }
+
+                // 새로운 파일 저장
+                dreamBoardFileRepository.saveAll(newFileEntities);
+
+            } catch (IOException e) {
+                throw new Exception("사진 저장중 에러발생");
             }
+        } catch (ResponseStatusException e){
+            throw e;
+        } catch (Exception e){
+            log.error("Unexpected error occurred while saving dream board", e);
+            throw new Exception();
         }
-
-        // Update file order
-        Map<Long, Integer> fileOrder = updateRequest.getFileOrder();
-        if (fileOrder != null) {
-            for (Map.Entry<Long, Integer> entry : fileOrder.entrySet()) {
-                Optional<DreamBoardFileEntity> fileEntityOpt = dreamBoardFileRepository.findById(entry.getKey());
-                if (fileEntityOpt.isPresent()) {
-                    DreamBoardFileEntity fileEntity = fileEntityOpt.get();
-                    fileEntity.setOrder(entry.getValue());
-                    dreamBoardFileRepository.save(fileEntity);
-                }
-            }
-        }
-
-        dreamBoardRepository.save(dbBoard);
-
         return true;
     }
 
