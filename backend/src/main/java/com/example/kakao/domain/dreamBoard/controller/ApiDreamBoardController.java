@@ -1,6 +1,5 @@
 package com.example.kakao.domain.dreamboard.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,13 +24,16 @@ import com.example.kakao.global.dto.response.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/dreamBoards")
+@RequiredArgsConstructor
 public class ApiDreamBoardController {
 
-    @Autowired
-    private DreamBoardService boardService;
+    //@Autowired
+    private final DreamBoardService boardService;
+
 
     @Operation(summary = "게시글 다건 조회")
     @GetMapping(value = "")
@@ -49,6 +51,7 @@ public class ApiDreamBoardController {
 
         return new ResponseEntity<>(RsData.of("ok", data), HttpStatus.OK);
     }
+
 
     @Operation(summary = "게시글 단건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
     @GetMapping("/{id}")
@@ -87,15 +90,13 @@ public class ApiDreamBoardController {
         return new ResponseEntity<>(RsData.of(result), HttpStatus.OK);
     }
 
-    /*
-     * Todo 수정은 이미 저장되어있는 사진은 안건드리는 로직을 추가해야한다. 도전!
-     */
+
     @Operation(summary = "게시글 수정", description = "지정된 id의 게시글을 수정합니다.")
     @PutMapping(value = "/{id}", consumes = "multipart/form-data; charset=UTF-8")
     public ResponseEntity< RsData<Boolean> > updateDreamBoard(
         @RequestHeader(name = "Authorization", required = true) String authorization,
         @PathVariable(name = "id") Long id,
-        @ModelAttribute DreamBoardUpdateRequest updateRequest,
+        @ModelAttribute @Valid DreamBoardUpdateRequest updateRequest,
         HttpServletRequest request
     ){
         boolean result = false;
@@ -113,14 +114,25 @@ public class ApiDreamBoardController {
     }
 
 
-    // 게시글을 삭제하는 주소
     @Operation(summary = "게시글 삭제", description = "지정된 id의 게시글을 삭제합니다.")
     @DeleteMapping("/{id}")
-    public RsData< DreamBoardResponse > deleteDreamBoardByIdx(
+    public ResponseEntity< RsData<Boolean> > deleteDreamBoardByIdx(
         @RequestHeader(name = "Authorization") String authorization,
-        @PathVariable(name = "id") Long id
+        @PathVariable(name = "id") Long id,
+        HttpServletRequest request
     ){
-        return null;
+        boolean result = false;
+        String accessToken = authorization.split(" ")[1]; // accessToken 추출
+        try {
+            result = boardService.deleteById(accessToken, id, request);
+
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(RsData.of(e.getMessage()), e.getStatusCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(RsData.of(result), HttpStatus.OK);
     }
 
 }

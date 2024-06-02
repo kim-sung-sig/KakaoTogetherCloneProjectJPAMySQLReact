@@ -45,14 +45,16 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DreamBoardService {
 
-    // @Autowired
-    private final String fileDirPath;
+    @Value("${custom.fileDirPath}")
+    private String fileDirPath;
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
     private final DreamBoardRepository dreamBoardRepository;
@@ -60,24 +62,8 @@ public class DreamBoardService {
     private final DreamBoardFileRepository dreamBoardFileRepository;
     private final JPAQueryFactory jpaQueryFactory;
 
-    // 주입
-    public DreamBoardService(@Value("${custom.fileDirPath}") String fileDirPath,
-                            JWTUtil jwtUtil,
-                            UserRepository userRepository,
-                            DreamBoardRepository dreamBoardRepository,
-                            DreamBoardCategoryRepository dreamBoardCategoryRepository,
-                            DreamBoardFileRepository dreamBoardFileRepository,
-                            JPAQueryFactory jpaQueryFactory
-    ){
-        this.fileDirPath = fileDirPath;
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-        this.dreamBoardRepository = dreamBoardRepository;
-        this.dreamBoardCategoryRepository = dreamBoardCategoryRepository;
-        this.dreamBoardFileRepository = dreamBoardFileRepository;
-        this.jpaQueryFactory = jpaQueryFactory;
-    }
 
+    // 1. 한개얻기 // TODO 카테고리를 List로 바꿀수 있음
     /**
      * 게시글 목록 얻기
      * @param lastId
@@ -87,8 +73,7 @@ public class DreamBoardService {
      * @return
      * @throws Exception
      */
-    // TODO 카테고리를 List로 바꿀수 있음
-    public PagingResponse<DreamBoardResponse> findAllByCondition(Long lastId, int size, Long categoryId, String search) throws Exception{
+    public PagingResponse<DreamBoardResponse> findAllByCondition(Long lastId, int size, Long categoryId, String search) throws Exception {
         log.info("findAllByCondition 실행");
         if((lastId != null && lastId < 0) || size < 0){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지않은 lastId or size");
@@ -157,21 +142,21 @@ public class DreamBoardService {
     }
 
 
+    // 2. 하나보기
     /**
      * 게시글 하나 얻기(상세보기)
      * @param id
      * @return
      * @throws EntityNotFoundException
      */
-    public DreamBoardResponse findById(Long id) throws EntityNotFoundException {
-        Optional<DreamBoardEntity> optional = dreamBoardRepository.findById(id);
-        if(optional.isPresent()){
-            return new DreamBoardResponse(optional.get());
-        } else {
-            throw new EntityNotFoundException("id에 해당하는 게시글이 존재하지 않습니다.");
-        }
+    public DreamBoardResponse findById(Long id) throws Exception {
+        return dreamBoardRepository.findById(id)
+                .map(e -> new DreamBoardResponse(e))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not id"));
     }
 
+
+    // 3. 저장하기
     /**
      * 게시글 저장하기
      * @param accessToken
@@ -181,7 +166,7 @@ public class DreamBoardService {
      * @throws Exception
      */
     @Transactional
-    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest, HttpServletRequest req) throws Exception{
+    public Boolean saveDreamBoard(String accessToken, DreamBoardUploadRequest uploadRequest, HttpServletRequest req) throws Exception {
         try {
             // 검증 시작
             Long userId = jwtUtil.getId(accessToken);
@@ -270,6 +255,8 @@ public class DreamBoardService {
         return true;
     }
 
+
+    // 4. 수정하기
     /**
      * 수정하기
      * @param accessToken
@@ -384,17 +371,58 @@ public class DreamBoardService {
     }
 
 
-    // 삭제하기
+    // 5. 삭제하기 //TODO 진짜 삭제 말고 숨김표시로 하자 진짜삭제는 따로만들자
+    /**
+     * 게시글 삭제하기
+     * @param accessToken
+     * @param boardId
+     * @param req
+     * @return
+     * @throws Exception
+     */
     @Transactional
-    public boolean deleteById(Long id){
-        boolean result = false;
+    public boolean deleteById(String accessToken, Long boardId, HttpServletRequest req) throws Exception {
         try {
-            dreamBoardRepository.deleteById(id);
-            result = true;
+            // 검증 시작
+            Long userId = jwtUtil.getId(accessToken);
+
+            // 유저가 맞는지 + 자신이 쓴 글이 맞는지
+            userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "탈퇴한 회원 Or 이상한 회원"));
+            // 존재하는 게시글
+            DreamBoardEntity dbBoard = dreamBoardRepository.findById(boardId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not id"));
+
+            Optional.ofNullable(dbBoard)
+                    .map(board -> board.getUser().getId())
+                    .filter(id -> id.equals(userId)) // TODO 나중에 관리자는 가능하게?
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "해당유저가 쓴글이 아님"));
+
+            // 삭제실행
+            String uploadPath = req.getServletContext().getRealPath(fileDirPath);
+            log.info("uploadPath => {}", uploadPath);
+            File uploadDir = new File(uploadPath);
+            if(!uploadDir.exists()){
+                uploadDir.mkdirs();
+            }
+            // 파일 삭제 시작
+            for (DreamBoardFileEntity deleteFileEntity : dbBoard.getFileEntities()) {
+                if (deleteFileEntity != null) {
+                    File deleteFile = new File(uploadDir, deleteFileEntity.getSaveFileName());
+                    if (deleteFile.exists()) {
+                        deleteFile.delete();
+                    }
+                }
+            }
+
+            dreamBoardRepository.delete(dbBoard); // db에서도 삭제 시작
+        } catch (ResponseStatusException e){
+            throw e;
         } catch (Exception e){
-            e.printStackTrace();
+            log.error("Unexpected error occurred while saving dream board", e);
+            throw new Exception();
         }
-        return result;
+        return true;
     }
 
     // 조회수 증가
