@@ -1,7 +1,7 @@
 package com.example.kakao.domain.dreamboard.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -91,16 +91,16 @@ public class DreamBoardEntity {
 
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true) // likeEntity의 변수명
-    private List<DreamBoardLikeEntity> likeEntitys;
+    private Set<DreamBoardLikeEntity> likeEntitys;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DreamBoardCommentEntity> commentEntitys;
+    private Set<DreamBoardCommentEntity> commentEntitys;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DreamBoardDonationEntity> donationEntitys;
+    private Set<DreamBoardDonationEntity> donationEntitys;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DreamBoardFileEntity> fileEntities;
+    private Set<DreamBoardFileEntity> fileEntities;
 
     
     public int getLikeCount(){

@@ -9,10 +9,10 @@ import org.springframework.stereotype.Repository;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 
 @Repository
-public interface DreamBoardRepository extends JpaRepository<DreamBoardEntity, Long>, DreamBoardRepositoryCustom {
+public interface DreamBoardRepository extends JpaRepository<DreamBoardEntity, Long>{
     
     // 1. 다건 조회
-    // queryDSL 사용 
+    // queryDSL 사용
 
     // 2. 단건 조회
 

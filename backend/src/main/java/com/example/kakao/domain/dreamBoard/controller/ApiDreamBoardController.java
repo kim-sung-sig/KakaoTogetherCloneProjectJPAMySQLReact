@@ -1,7 +1,5 @@
 package com.example.kakao.domain.dreamboard.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUpdateRequest;
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUploadRequest;
+import com.example.kakao.domain.dreamboard.dto.response.DreamBoardPagingResponse;
 import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
 import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
 import com.example.kakao.global.dto.request.ScrollRequest;
+import com.example.kakao.global.dto.response.MsgResponse;
 import com.example.kakao.global.dto.response.RsData;
 import com.example.kakao.global.exception.EntityNotFoundException;
 
@@ -39,26 +39,24 @@ public class ApiDreamBoardController {
     @Autowired
     private DreamBoardService boardService;
 
-    @Operation(summary = "게시글 다건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
+    @Operation(summary = "게시글 다건 조회")
     @GetMapping(value = "")
-    public ResponseEntity< List<DreamBoardResponse> > getBoardList(
-        HttpServletRequest request,
-        @ModelAttribute ScrollRequest sc
-    ){
+    public ResponseEntity< DreamBoardPagingResponse > getBoardList(HttpServletRequest request, @ModelAttribute ScrollRequest sc){
         log.info("getBoardList 호출 ScrollVO => {}", sc);
-        List<DreamBoardResponse> resultList = null;
+        DreamBoardPagingResponse result = null;
         try {
-            resultList = boardService.getEntitysWithPagination(sc.getLastItemId(), sc.getSize(), sc.getCategoryNum(), sc.getSearch());
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        } catch (EntityNotFoundException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            result = DreamBoardPagingResponse.builder()
+                    .data(boardService.findAllByCondition(sc.getLastItemId(), sc.getSize(), sc.getCategoryNum(), sc.getSearch()))
+                    .msg(new MsgResponse("ok"))
+                    .build();
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(DreamBoardPagingResponse.builder().msg(new MsgResponse(e.getMessage())).build());
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        return new ResponseEntity<>(resultList, HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @Operation(summary = "게시글 단건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
@@ -88,6 +86,7 @@ public class ApiDreamBoardController {
         String accessToken = authorization.split(" ")[1]; // accessToken 추출
         try {
             result = boardService.saveDreamBoard(accessToken, uploadRequest, req);
+
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
         } catch (Exception e) {
@@ -113,8 +112,12 @@ public class ApiDreamBoardController {
         String accessToken = authorization.split(" ")[1]; // accessToken 추출
         try {
             boardService.updateDreamBoard(accessToken, id, updateRequest, request);
+
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace(); // TODO 여기 추후 수정
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

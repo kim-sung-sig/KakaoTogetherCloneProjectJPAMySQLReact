@@ -12,11 +12,13 @@ public class DreamBoardResponse {
 
     public DreamBoardResponse(DreamBoardEntity e){
         this.id = e.getId();
-        this.userFk = e.getUser().getId();
+        this.userNum = e.getUser().getId();
         this.name = e.getUser().getName();
         this.userProfileImg = e.getUser().getProfileImg();
-        this.categoryFk = e.getCategory().getId();
+        this.categoryNum = e.getCategory().getId();
         this.categoryName = e.getCategory().getCategoryName();
+
+        this.thumbnail = e.getThumbnail();
         this.title = e.getTitle();
         this.content = e.getContent();
         this.tag1 = e.getTag1();
@@ -37,14 +39,15 @@ public class DreamBoardResponse {
     private Long id;
 
     // 유저 관련
-    private Long userFk;
+    private Long userNum;
     private String name;
     private String userProfileImg;
 
     // 카테고리 관련
-    private Long categoryFk;
+    private Long categoryNum;
     private String categoryName;
 
+    private String thumbnail;
     private String title;
     private String content;
     private String tag1;
