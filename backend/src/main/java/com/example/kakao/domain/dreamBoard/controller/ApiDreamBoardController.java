@@ -16,22 +16,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUpdateRequest;
 import com.example.kakao.domain.dreamboard.dto.request.DreamBoardUploadRequest;
-import com.example.kakao.domain.dreamboard.dto.response.DreamBoardPagingResponse;
 import com.example.kakao.domain.dreamboard.dto.response.DreamBoardResponse;
-import com.example.kakao.domain.dreamboard.entity.DreamBoardEntity;
 import com.example.kakao.domain.dreamboard.service.DreamBoardService;
 import com.example.kakao.global.dto.request.ScrollRequest;
-import com.example.kakao.global.dto.response.MsgResponse;
+import com.example.kakao.global.dto.response.PagingResponse;
 import com.example.kakao.global.dto.response.RsData;
-import com.example.kakao.global.exception.EntityNotFoundException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/dreamBoards")
 public class ApiDreamBoardController {
@@ -41,59 +35,56 @@ public class ApiDreamBoardController {
 
     @Operation(summary = "게시글 다건 조회")
     @GetMapping(value = "")
-    public ResponseEntity< DreamBoardPagingResponse > getBoardList(HttpServletRequest request, @ModelAttribute ScrollRequest sc){
-        log.info("getBoardList 호출 ScrollVO => {}", sc);
-        DreamBoardPagingResponse result = null;
+    public ResponseEntity<RsData< PagingResponse<DreamBoardResponse> >> getDreamBoardList(HttpServletRequest request, @ModelAttribute ScrollRequest sc){
+        PagingResponse<DreamBoardResponse> data = null;
         try {
-            result = DreamBoardPagingResponse.builder()
-                    .data(boardService.findAllByCondition(sc.getLastItemId(), sc.getSize(), sc.getCategoryNum(), sc.getSearch()))
-                    .msg(new MsgResponse("ok"))
-                    .build();
+            data = boardService.findAllByCondition(sc.getLastItemId(), sc.getSize(), sc.getCategoryNum(), sc.getSearch());
+
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(DreamBoardPagingResponse.builder().msg(new MsgResponse(e.getMessage())).build());
+            return new ResponseEntity<>(RsData.of(e.getMessage()), e.getStatusCode());
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return new ResponseEntity<>(RsData.of("ok", data), HttpStatus.OK);
     }
 
     @Operation(summary = "게시글 단건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity<DreamBoardResponse> getDreamBoardById(@PathVariable(name = "id") Long id) {
-        DreamBoardResponse result = null;
+    public ResponseEntity< RsData<DreamBoardResponse> > getDreamBoardById(@PathVariable(name = "id") Long id) {
+        DreamBoardResponse data = null;
         try {
-            result = boardService.findById(id);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            data = boardService.findById(id);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(RsData.of(e.getMessage()), e.getStatusCode());
         } catch (Exception e){
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return new ResponseEntity<>(RsData.of("ok", data), HttpStatus.OK);
     }
+
 
     @Operation(summary = "게시글 저장", description = "게시글을 저장합니다.")
     @PostMapping(value = "", consumes = "multipart/form-data; charset=UTF-8")
-    public ResponseEntity<?> insertDreamBoard(
+    public ResponseEntity< RsData<Boolean> > insertDreamBoard(
         @RequestHeader(name = "Authorization") String authorization,
         @ModelAttribute @Valid DreamBoardUploadRequest uploadRequest,
         HttpServletRequest req
     ) {
-        log.info("게시글 저장 실행");
-        Boolean result = false;
+        boolean result = false;
         String accessToken = authorization.split(" ")[1]; // accessToken 추출
         try {
             result = boardService.saveDreamBoard(accessToken, uploadRequest, req);
 
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
+            return new ResponseEntity<>(RsData.of(e.getMessage()), e.getStatusCode());
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(RsData.of(result), HttpStatus.OK);
     }
 
     /*
@@ -101,32 +92,26 @@ public class ApiDreamBoardController {
      */
     @Operation(summary = "게시글 수정", description = "지정된 id의 게시글을 수정합니다.")
     @PutMapping(value = "/{id}", consumes = "multipart/form-data; charset=UTF-8")
-    public ResponseEntity<?> updateDreamBoard(
+    public ResponseEntity< RsData<Boolean> > updateDreamBoard(
         @RequestHeader(name = "Authorization", required = true) String authorization,
         @PathVariable(name = "id") Long id,
         @ModelAttribute DreamBoardUpdateRequest updateRequest,
         HttpServletRequest request
     ){
-        log.info("게시글 수정 실행");
-        Boolean result = false;
+        boolean result = false;
         String accessToken = authorization.split(" ")[1]; // accessToken 추출
         try {
-            boardService.updateDreamBoard(accessToken, id, updateRequest, request);
+            result = boardService.updateDreamBoard(accessToken, id, updateRequest, request);
 
         } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getMessage());
+            return new ResponseEntity<>(RsData.of(e.getMessage()), e.getStatusCode());
         } catch (Exception e) {
-            e.printStackTrace(); // TODO 여기 추후 수정
+            e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(RsData.of(result), HttpStatus.OK);
     }
 
-
-    @Data
-    public static class RemoveResponse{
-        private final DreamBoardEntity dreamBoardEntity;
-    }
 
     // 게시글을 삭제하는 주소
     @Operation(summary = "게시글 삭제", description = "지정된 id의 게시글을 삭제합니다.")

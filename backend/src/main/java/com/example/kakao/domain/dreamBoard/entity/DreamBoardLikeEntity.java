@@ -1,8 +1,15 @@
 package com.example.kakao.domain.dreamboard.entity;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import com.example.kakao.domain.user.entity.UserEntity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,6 +23,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @Builder
 @Entity
 public class DreamBoardLikeEntity {
@@ -32,4 +40,8 @@ public class DreamBoardLikeEntity {
     @JoinColumn(name = "board_fk", nullable = false)
     private DreamBoardEntity board;
     
+    @CreatedDate
+    @Column(name = "create_date")
+    private LocalDateTime createDate;
+
 }

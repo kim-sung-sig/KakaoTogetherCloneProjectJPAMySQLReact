@@ -1,34 +1,37 @@
 package com.example.kakao.global.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
 public class RsData<T> {
-    private String resultCode;
     private String msg;
     private T data;
 
-    public static <T> RsData<T> of(String resultCode, String msg, T data){
-        return new RsData<>(resultCode, msg, data);
+    public static <T> RsData<T> of(String msg, T data){
+        return new RsData<>(msg, data);
     }
 
-    public static <T> RsData<T> of(String resultCode, String msg){
-        return of(resultCode, msg, null);
+    public static <T> RsData<T> of(String msg){
+        return of(msg, null);
     }
 
-    @JsonIgnore
-    public boolean isSuccess(){
-        return resultCode.startsWith("S-");
+    public static <T> RsData<T> of(Boolean msg, T data){
+        String msgstr = null;
+        if(msg != null) msgstr = msg.toString();
+
+        return new RsData<>(msgstr, data);
     }
 
-    @JsonIgnore
-    public boolean isFail(){
-        return !isSuccess();
+    public static <T> RsData<T> of(Boolean msg){
+        return of(msg, null);
     }
+
 }

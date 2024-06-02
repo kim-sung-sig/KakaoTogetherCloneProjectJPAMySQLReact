@@ -102,7 +102,6 @@ public class DreamBoardEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DreamBoardFileEntity> fileEntities;
 
-    
     public int getLikeCount(){
         return likeEntitys != null ? likeEntitys.size() : 0;
     }

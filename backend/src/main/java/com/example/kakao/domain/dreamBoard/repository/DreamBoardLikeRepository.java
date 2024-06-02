@@ -16,15 +16,10 @@ public interface DreamBoardLikeRepository extends JpaRepository<DreamBoardLikeEn
     // 1. 좋아요 있는지 확인
     @Query("SELECT dbl FROM DreamBoardLikeEntity dbl WHERE dbl.board.id = :boardId AND dbl.user.id = :userId")
     Optional<DreamBoardLikeEntity> findByBoardAndUser(@Param("boardId") Long boardId, @Param("userId") Long userId);
-    
-    // 2. 저장
-    
-    // 3. 삭제
+
+    // 2. 삭제
     @Modifying
     @Query("DELETE FROM DreamBoardLikeEntity dbl WHERE dbl.board.id = :boardId AND dbl.user.id = :userId")
     void deleteByBoardAndUser(@Param("boardId") Long boardId, @Param("userId") Long userId);
 
-    // 4. 내가 좋아요한 글 보기
-    
-    
 }
