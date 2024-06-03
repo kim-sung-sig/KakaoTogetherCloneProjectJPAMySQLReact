@@ -2,7 +2,6 @@ package com.example.kakao.global.initdata;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -18,7 +17,7 @@ public class InitData {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Bean
+    //@Bean
     CommandLineRunner init(DreamBoardCategoryRepository categoryRepository, UserRepository userRepository, DreamBoardService service) {
         return args -> {
             // 유저
@@ -33,7 +32,7 @@ public class InitData {
             
             userRepository.save(user);
             System.out.println(userRepository.findById(1L).get());
-            // 카테고리 
+            // 카테고리
             String[] cate = {
                 "자원봉사",
                 "어려운이웃",

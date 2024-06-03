@@ -55,7 +55,7 @@ public class ApiDreamBoardController {
 
     @Operation(summary = "게시글 단건 조회", description = "지정된 id에 해당하는 게시글을 조회합니다.")
     @GetMapping("/{id}")
-    public ResponseEntity< RsData<DreamBoardResponse> > getDreamBoardById(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<RsData< DreamBoardResponse >> getDreamBoardById(@PathVariable(name = "id") Long id) {
         DreamBoardResponse data = null;
         try {
             data = boardService.findById(id);

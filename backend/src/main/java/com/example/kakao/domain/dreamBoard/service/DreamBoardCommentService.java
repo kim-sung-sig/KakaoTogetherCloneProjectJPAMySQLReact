@@ -105,10 +105,15 @@ public class DreamBoardCommentService {
      * @return
      * @throws Exception
      */
-    public DreamBoardCommentResponse findById(Long id) throws Exception{
-        return dreamBoardCommentRepository.findById(id)
-                .map((e) -> new DreamBoardCommentResponse(e))
+    public DreamBoardCommentResponse findByBoardIdAndId(Long boardId, Long commentId) throws Exception{
+        DreamBoardEntity boardEntity = dreamBoardRepository.findById(boardId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "게시글 not id"));
+        DreamBoardCommentEntity commmentEntity = dreamBoardCommentRepository.findById(commentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "not id"));
+        if(!boardEntity.getCommentEntitys().contains(commmentEntity)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "not match");
+        }
+        return new DreamBoardCommentResponse(commmentEntity);
     }
 
 
