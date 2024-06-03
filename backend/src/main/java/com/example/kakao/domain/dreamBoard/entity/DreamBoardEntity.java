@@ -89,6 +89,9 @@ public class DreamBoardEntity {
     @Column(name = "read_count")
     private int readCount;
 
+    @Column(name = "is_used", columnDefinition = "TINYINT(1) DEFAULT 1")
+    private Integer isUsed;
+
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true) // likeEntity의 변수명
     private Set<DreamBoardLikeEntity> likeEntitys;

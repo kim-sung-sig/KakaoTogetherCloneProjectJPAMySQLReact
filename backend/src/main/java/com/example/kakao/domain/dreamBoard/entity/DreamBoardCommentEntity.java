@@ -53,5 +53,9 @@ public class DreamBoardCommentEntity {
 
     @Column(name = "ip")
     private String ip;
+
+    @Column(name = "is_used", columnDefinition = "TINYINT(1) DEFAULT 1")
+    private Integer isUsed;
+
     
 }
