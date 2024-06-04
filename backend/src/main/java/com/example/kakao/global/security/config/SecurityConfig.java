@@ -92,16 +92,22 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/").permitAll()
-                .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**","/files/**").permitAll()
+                // static
+                .requestMatchers("/css/**", "/js/**", "/img/**").permitAll()
+                // upload File
+                .requestMatchers("/upload/**").permitAll()
+                // Login & Join
                 .requestMatchers("/login", "/join").permitAll()
-                .requestMatchers("/favicon.ico").permitAll()
-                // 스웨거
+                // swagger
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                // api
+                
+                /* api */
+                // refreshToken -> accessToken
                 .requestMatchers(HttpMethod.POST, "/api/*/token").permitAll()
+                
+                // dream
                 .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards").permitAll() // 다건조회
-                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards/**").permitAll() // 단건조회
+                .requestMatchers(HttpMethod.GET, "/api/*/dreamBoards/*").permitAll() // 단건조회
                 .anyRequest().authenticated();
             }
         );

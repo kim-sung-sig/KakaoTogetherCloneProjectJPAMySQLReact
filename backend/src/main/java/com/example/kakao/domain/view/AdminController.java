@@ -41,7 +41,7 @@ public class AdminController {
         return "redirect:/";
     }
 
-    @GetMapping("/files/{fileName:.+}")
+    @GetMapping("/upload/{fileName:.+}")
     public ResponseEntity< ? > getFile(@PathVariable("fileName") String fileName) {
         log.info("fileName => {}", fileName);
         try {

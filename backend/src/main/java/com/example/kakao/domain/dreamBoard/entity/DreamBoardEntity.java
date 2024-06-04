@@ -89,7 +89,7 @@ public class DreamBoardEntity {
     @Column(name = "read_count")
     private int readCount;
 
-    @Column(name = "is_used", columnDefinition = "TINYINT(1) DEFAULT 1")
+    @Column(name = "is_used", columnDefinition = "TINYINT(1) DEFAULT 1") // 사용하는지! 삭제시 0
     private Integer isUsed;
 
 
