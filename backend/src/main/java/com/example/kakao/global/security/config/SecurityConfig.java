@@ -92,7 +92,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> {
             auth
                 .requestMatchers("/").permitAll()
-                .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**").permitAll()
+                .requestMatchers("/upload/**", "/css/**", "/js/**", "/img/**","/files/**").permitAll()
                 .requestMatchers("/login", "/join").permitAll()
                 .requestMatchers("/favicon.ico").permitAll()
                 // 스웨거
